@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { Facility } from "@/data/facilities";
@@ -12,23 +12,11 @@ interface MapProps {
 const Map = ({ facilities, onFacilitySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapKey, setMapKey] = useState("");
 
   useEffect(() => {
     if (!mapContainer.current) return;
 
-    if (!mapKey) {
-      const key = prompt(
-        "Please enter your Mapbox access token (you can get one from https://mapbox.com/)"
-      );
-      if (key) {
-        setMapKey(key);
-        localStorage.setItem("mapbox_key", key);
-      }
-      return;
-    }
-
-    mapboxgl.accessToken = mapKey;
+    mapboxgl.accessToken = "pk.eyJ1IjoiZ2VwdXkiLCJhIjoiY203Zzlwc3ZyMDhnczJpcXVxdWRsYndqZyJ9.V6W61Lt1CK-JLhzyJ7DvBA";
 
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -46,17 +34,21 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
       facilities.forEach((facility) => {
         const el = document.createElement('div');
         el.className = 'marker';
-        el.style.width = '24px';
-        el.style.height = '24px';
-        el.style.backgroundColor = '#3a6e6c';
-        el.style.borderRadius = '50%';
-        el.style.cursor = 'pointer';
-        el.style.transition = 'all 0.3s ease';
-        el.style.border = '2px solid white';
-        el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+        el.style.cssText = `
+          width: 24px;
+          height: 24px;
+          background-color: #3a6e6c;
+          border-radius: 50%;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+          transform-origin: center center;
+          transition: all 0.3s ease;
+        `;
 
         const marker = new mapboxgl.Marker({
           element: el,
+          anchor: 'center',
         })
           .setLngLat(facility.location)
           .addTo(map.current!);
@@ -68,13 +60,15 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
 
         // Add hover effect
         el.addEventListener("mouseenter", () => {
-          el.style.transform = 'scale(1.2)';
           el.style.backgroundColor = '#2a5e5c';
+          el.style.transform = 'scale(1.2)';
+          el.style.zIndex = '1';
         });
 
         el.addEventListener("mouseleave", () => {
-          el.style.transform = 'scale(1)';
           el.style.backgroundColor = '#3a6e6c';
+          el.style.transform = 'scale(1)';
+          el.style.zIndex = 'auto';
         });
       });
 
@@ -135,7 +129,7 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, [facilities, mapKey, onFacilitySelect]);
+  }, [facilities, onFacilitySelect]);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden">
