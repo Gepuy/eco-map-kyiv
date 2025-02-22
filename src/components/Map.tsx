@@ -42,8 +42,6 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
           cursor: pointer;
           border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-          transform-origin: center center;
-          transition: all 0.3s ease;
         `;
 
         const marker = new mapboxgl.Marker({
@@ -56,19 +54,6 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
         // Add click event to marker
         el.addEventListener("click", () => {
           onFacilitySelect(facility);
-        });
-
-        // Add hover effect
-        el.addEventListener("mouseenter", () => {
-          el.style.backgroundColor = '#2a5e5c';
-          el.style.transform = 'scale(1.2)';
-          el.style.zIndex = '1';
-        });
-
-        el.addEventListener("mouseleave", () => {
-          el.style.backgroundColor = '#3a6e6c';
-          el.style.transform = 'scale(1)';
-          el.style.zIndex = 'auto';
         });
       });
 
