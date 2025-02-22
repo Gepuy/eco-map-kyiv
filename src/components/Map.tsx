@@ -44,23 +44,37 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
 
       // Add facilities as markers
       facilities.forEach((facility) => {
+        const el = document.createElement('div');
+        el.className = 'marker';
+        el.style.width = '24px';
+        el.style.height = '24px';
+        el.style.backgroundColor = '#3a6e6c';
+        el.style.borderRadius = '50%';
+        el.style.cursor = 'pointer';
+        el.style.transition = 'all 0.3s ease';
+        el.style.border = '2px solid white';
+        el.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
+
         const marker = new mapboxgl.Marker({
-          color: "#3a6e6c",
+          element: el,
         })
           .setLngLat(facility.location)
           .addTo(map.current!);
 
         // Add click event to marker
-        marker.getElement().addEventListener("click", () => {
+        el.addEventListener("click", () => {
           onFacilitySelect(facility);
         });
 
         // Add hover effect
-        marker.getElement().addEventListener("mouseenter", () => {
-          marker.getElement().style.transform = "scale(1.2)";
+        el.addEventListener("mouseenter", () => {
+          el.style.transform = 'scale(1.2)';
+          el.style.backgroundColor = '#2a5e5c';
         });
-        marker.getElement().addEventListener("mouseleave", () => {
-          marker.getElement().style.transform = "scale(1)";
+
+        el.addEventListener("mouseleave", () => {
+          el.style.transform = 'scale(1)';
+          el.style.backgroundColor = '#3a6e6c';
         });
       });
 
