@@ -12,6 +12,13 @@ interface MapProps {
 const Map = ({ facilities, onFacilitySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+
+  // Очищення всіх маркерів з мапи
+  const clearMarkers = () => {
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
+  };
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -27,102 +34,147 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
 
     map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-    map.current.on("load", () => {
-      if (!map.current) return;
-
-      // Clean up previous markers if any
-      const markersElements = document.querySelectorAll('.marker');
-      markersElements.forEach(el => el.remove());
-
-      // Add facilities as markers
-      facilities.forEach((facility) => {
-        const el = document.createElement('div');
-        el.className = 'marker';
-        el.style.cssText = `
-          width: 24px;
-          height: 24px;
-          background-color: #3a6e6c;
-          border-radius: 50%;
-          cursor: pointer;
-          border: 2px solid white;
-          box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        `;
-
-        const marker = new mapboxgl.Marker({
-          element: el,
-          anchor: 'center',
-        })
-          .setLngLat(facility.location)
-          .addTo(map.current!);
-
-        // Add click event to marker
-        el.addEventListener("click", () => {
-          onFacilitySelect(facility);
-        });
-      });
-
-      // Add a pulsing dot effect
-      const size = 150;
-      const pulsingDot = {
-        width: size,
-        height: size,
-        data: new Uint8Array(size * size * 4),
-        onAdd: function () {
-          const canvas = document.createElement("canvas");
-          canvas.width = this.width;
-          canvas.height = this.height;
-          this.context = canvas.getContext("2d");
-        },
-        render: function () {
-          const duration = 1000;
-          const t = (performance.now() % duration) / duration;
-          const radius = (size / 2) * 0.3;
-          const outerRadius = (size / 2) * 0.7 * t + radius;
-          const context = this.context;
-
-          if (!context) return null;
-
-          context.clearRect(0, 0, this.width, this.height);
-          context.beginPath();
-          context.arc(
-            this.width / 2,
-            this.height / 2,
-            outerRadius,
-            0,
-            Math.PI * 2
-          );
-          context.fillStyle = `rgba(58, 110, 108, ${1 - t})`;
-          context.fill();
-
-          context.beginPath();
-          context.arc(this.width / 2, this.height / 2, radius, 0, Math.PI * 2);
-          context.fillStyle = "rgba(58, 110, 108, 1)";
-          context.strokeStyle = "white";
-          context.lineWidth = 2 + 4 * (1 - t);
-          context.fill();
-          context.stroke();
-
-          this.data = context.getImageData(0, 0, this.width, this.height).data;
-          map.current?.triggerRepaint();
-          return true;
-        },
-      };
-
-      facilities.forEach((facility) => {
-        map.current?.addImage(`pulsing-dot-${facility.id}`, pulsingDot, {
-          pixelRatio: 2,
-        });
-      });
-    });
-
     return () => {
+      clearMarkers();
       map.current?.remove();
     };
+  }, []);
+
+  // Оновлення маркерів при зміні списку об'єктів
+  useEffect(() => {
+    if (!map.current) return;
+
+    // Чекаємо, коли мапа повністю завантажиться
+    const setupMarkers = () => {
+      if (map.current && map.current.loaded()) {
+        // Очищаємо попередні маркери
+        clearMarkers();
+
+        // Додаємо нові маркери для об'єктів
+        facilities.forEach((facility) => {
+          const el = document.createElement('div');
+          el.className = 'marker';
+          
+          // Визначаємо колір маркера в залежності від типу об'єкта
+          let color = '#3a6e6c'; // базовий колір
+          
+          if (facility.type === 'Теплоелектроцентраль') {
+            color = '#e11d48'; // червоний для теплоелектроцентралей
+          } else if (facility.type === 'Сміттєспалювальний завод') {
+            color = '#d97706'; // помаранчевий для сміттєспалювальних заводів
+          } else if (facility.type === 'Водоочисна споруда') {
+            color = '#2563eb'; // синій для водоочисних споруд
+          }
+          
+          el.style.cssText = `
+            width: 24px;
+            height: 24px;
+            background-color: ${color};
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+          `;
+          
+          // Додаємо ефект ховера
+          el.addEventListener('mouseenter', () => {
+            el.style.transform = 'scale(1.2)';
+          });
+          
+          el.addEventListener('mouseleave', () => {
+            el.style.transform = 'scale(1)';
+          });
+
+          const marker = new mapboxgl.Marker({
+            element: el,
+            anchor: 'center',
+          })
+            .setLngLat(facility.location)
+            .addTo(map.current!);
+            
+          // Додаємо підписи до маркерів
+          const popup = new mapboxgl.Popup({
+            closeButton: false,
+            closeOnClick: false,
+            offset: 25,
+            className: 'custom-popup'
+          }).setHTML(`
+            <div class="text-xs font-medium">
+              <div>${facility.name}</div>
+              <div class="text-gray-600">${facility.type}</div>
+            </div>
+          `);
+          
+          el.addEventListener('mouseenter', () => {
+            marker.setPopup(popup);
+            popup.addTo(map.current!);
+          });
+          
+          el.addEventListener('mouseleave', () => {
+            popup.remove();
+          });
+
+          // Додаємо обробник кліку
+          el.addEventListener("click", () => {
+            onFacilitySelect(facility);
+          });
+          
+          // Зберігаємо посилання на маркер
+          markersRef.current.push(marker);
+        });
+        
+        // Якщо є об'єкти, але не видно на мапі, змінюємо центр і масштаб
+        if (facilities.length > 0 && map.current) {
+          // Якщо об'єкт тільки один, центруємо на нього
+          if (facilities.length === 1) {
+            map.current.flyTo({
+              center: facilities[0].location,
+              zoom: 14,
+              essential: true
+            });
+          } else {
+            // Для багатьох об'єктів обчислюємо bounds
+            const bounds = new mapboxgl.LngLatBounds();
+            facilities.forEach(facility => {
+              bounds.extend(facility.location);
+            });
+            
+            map.current.fitBounds(bounds, {
+              padding: 50,
+              maxZoom: 15,
+              essential: true
+            });
+          }
+        }
+      } else {
+        // Якщо мапа ще не завантажилась, пробуємо через час
+        setTimeout(setupMarkers, 100);
+      }
+    };
+    
+    setupMarkers();
   }, [facilities, onFacilitySelect]);
 
   return (
     <div className="relative w-full h-full rounded-lg overflow-hidden">
       <div ref={mapContainer} className="absolute inset-0" />
+      <div className="absolute bottom-4 right-4 bg-white rounded-md px-2 py-1 text-xs shadow-md">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-e11d48 border border-white"></div>
+            <span>Теплоелектроцентраль</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-d97706 border border-white"></div>
+            <span>Сміттєспалювальний завод</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-2563eb border border-white"></div>
+            <span>Водоочисна споруда</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

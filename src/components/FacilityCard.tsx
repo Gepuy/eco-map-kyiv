@@ -9,9 +9,17 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import DetailedIndicatorsPanel from "./DetailedIndicatorsPanel";
+import TrendChart from "./TrendChart";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from '@/components/ui/select';
 
 interface FacilityCardProps {
   facility: Facility;
@@ -20,6 +28,40 @@ interface FacilityCardProps {
 
 const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
   const [showDetailedIndicators, setShowDetailedIndicators] = useState(false);
+  const [showTrendChart, setShowTrendChart] = useState(false);
+  const [selectedIndicator, setSelectedIndicator] = useState<{
+    type: string,
+    name: string,
+    label: string
+  }>({
+    type: 'air',
+    name: 'dust',
+    label: 'Пил'
+  });
+
+  const indicatorOptions = [
+    { type: 'air', name: 'dust', label: 'Пил' },
+    { type: 'air', name: 'no2', label: 'NO2' },
+    { type: 'air', name: 'so2', label: 'SO2' },
+    { type: 'water', name: 'microbiological', label: 'Мікробіологічні показники' },
+    { type: 'water', name: 'epidemiological', label: 'Епідеміологічні показники' },
+    { type: 'soil', name: 'humus', label: 'Гумус' },
+    { type: 'soil', name: 'phosphorus', label: 'Фосфор' },
+    { type: 'radiation', name: 'air_radiation', label: 'Радіація повітря' },
+    { type: 'radiation', name: 'water_radiation', label: 'Радіація води' },
+    { type: 'waste', name: 'volume', label: 'Об\'єм відходів' },
+    { type: 'economic', name: 'gross_product', label: 'ВВП' },
+    { type: 'health', name: 'disease_prevalence', label: 'Захворюваність' },
+    { type: 'energy', name: 'electricity_consumption', label: 'Споживання електроенергії' }
+  ];
+
+  const handleIndicatorSelect = (value: string) => {
+    const [type, name] = value.split('.');
+    const option = indicatorOptions.find(opt => opt.type === type && opt.name === name);
+    if (option) {
+      setSelectedIndicator(option);
+    }
+  };
 
   return (
     <Card
@@ -92,6 +134,53 @@ const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
             </div>
           </div>
         </div>
+
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium flex items-center gap-1">
+            <TrendingUp className="h-4 w-4 text-eco-700" />
+            Графік зміни показника
+          </h4>
+          <div className="space-y-2">
+            <Select onValueChange={handleIndicatorSelect} defaultValue="air.dust">
+              <SelectTrigger>
+                <SelectValue placeholder="Оберіть показник" />
+              </SelectTrigger>
+              <SelectContent>
+                {indicatorOptions.map((option) => (
+                  <SelectItem key={`${option.type}.${option.name}`} value={`${option.type}.${option.name}`}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center justify-center" 
+              onClick={() => setShowTrendChart(!showTrendChart)}
+            >
+              {showTrendChart ? (
+                <>
+                  <ChevronUp className="mr-2 h-4 w-4" />
+                  Згорнути графік
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="mr-2 h-4 w-4" />
+                  Показати графік
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+        
+        {showTrendChart && (
+          <TrendChart 
+            facility={facility} 
+            indicatorType={selectedIndicator.type} 
+            indicatorName={selectedIndicator.label}
+          />
+        )}
 
         <Button 
           variant="outline" 
