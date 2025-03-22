@@ -29,7 +29,17 @@ export const useFacilities = () => {
             address: item.address,
             environmentalImpact: item.environmental_impact,
             monitoringSystems: item.monitoring_systems,
-            parameters: item.parameters
+            parameters: item.parameters,
+            detailedIndicators: item.detailed_indicators || {
+              air: { measured: {}, calculated: {} },
+              water: { measured: {}, calculated: {} },
+              soil: { measured: {}, calculated: {} },
+              radiation: { measured: {}, calculated: {} },
+              waste: { measured: {}, calculated: {} },
+              economic: { measured: {}, calculated: {} },
+              health: { measured: {}, calculated: {} },
+              energy: { measured: {}, calculated: {} }
+            }
           }));
           
           setFacilities(transformedData);

@@ -12,6 +12,7 @@ export type Database = {
       facilities: {
         Row: {
           address: string
+          detailed_indicators: Json | null
           environmental_impact: Json
           id: number
           location: number[]
@@ -22,6 +23,7 @@ export type Database = {
         }
         Insert: {
           address: string
+          detailed_indicators?: Json | null
           environmental_impact: Json
           id?: number
           location: number[]
@@ -32,6 +34,7 @@ export type Database = {
         }
         Update: {
           address?: string
+          detailed_indicators?: Json | null
           environmental_impact?: Json
           id?: number
           location?: number[]

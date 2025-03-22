@@ -8,6 +8,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import DetailedIndicatorsPanel from "./DetailedIndicatorsPanel";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface FacilityCardProps {
   facility: Facility;
@@ -15,6 +19,8 @@ interface FacilityCardProps {
 }
 
 const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
+  const [showDetailedIndicators, setShowDetailedIndicators] = useState(false);
+
   return (
     <Card
       className={`w-full max-w-md bg-white/90 backdrop-blur-sm shadow-lg transition-all duration-300 ${
@@ -86,6 +92,26 @@ const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
             </div>
           </div>
         </div>
+
+        <Button 
+          variant="outline" 
+          className="w-full flex items-center justify-center" 
+          onClick={() => setShowDetailedIndicators(!showDetailedIndicators)}
+        >
+          {showDetailedIndicators ? (
+            <>
+              <ChevronUp className="mr-2 h-4 w-4" />
+              Згорнути детальні показники
+            </>
+          ) : (
+            <>
+              <ChevronDown className="mr-2 h-4 w-4" />
+              Показати детальні показники
+            </>
+          )}
+        </Button>
+
+        {showDetailedIndicators && <DetailedIndicatorsPanel facility={facility} />}
       </CardContent>
     </Card>
   );
