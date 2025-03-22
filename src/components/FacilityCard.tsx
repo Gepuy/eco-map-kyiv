@@ -1,5 +1,5 @@
 
-import { Facility } from "@/data/facilities";
+import { Facility } from "@/types/supabase";
 import {
   Card,
   CardContent,

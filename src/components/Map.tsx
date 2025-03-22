@@ -2,7 +2,7 @@
 import React, { useEffect, useRef } from "react";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { Facility } from "@/data/facilities";
+import { Facility } from "@/types/supabase";
 
 interface MapProps {
   facilities: Facility[];
@@ -29,6 +29,10 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
 
     map.current.on("load", () => {
       if (!map.current) return;
+
+      // Clean up previous markers if any
+      const markersElements = document.querySelectorAll('.marker');
+      markersElements.forEach(el => el.remove());
 
       // Add facilities as markers
       facilities.forEach((facility) => {
