@@ -5,35 +5,35 @@ import { Facility } from '@/types/supabase';
 const getIndicatorValue = (facility: Facility, type: string, name: string): number => {
   try {
     // @ts-ignore - Використовуємо динамічний доступ до властивостей
-    if (type === 'air' && facility.detailedIndicators.air.measured[name]) {
+    if (type === 'air' && facility.detailedIndicators?.air?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.air.measured[name];
     }
-    if (type === 'water' && facility.detailedIndicators.water.measured[name]) {
+    if (type === 'water' && facility.detailedIndicators?.water?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.water.measured[name];
     }
-    if (type === 'soil' && facility.detailedIndicators.soil.measured[name]) {
+    if (type === 'soil' && facility.detailedIndicators?.soil?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.soil.measured[name];
     }
-    if (type === 'radiation' && facility.detailedIndicators.radiation.measured[name]) {
+    if (type === 'radiation' && facility.detailedIndicators?.radiation?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.radiation.measured[name];
     }
-    if (type === 'waste' && facility.detailedIndicators.waste.measured[name]) {
+    if (type === 'waste' && facility.detailedIndicators?.waste?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.waste.measured[name];
     }
-    if (type === 'economic' && facility.detailedIndicators.economic.measured[name]) {
+    if (type === 'economic' && facility.detailedIndicators?.economic?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.economic.measured[name];
     }
-    if (type === 'health' && facility.detailedIndicators.health.measured[name]) {
+    if (type === 'health' && facility.detailedIndicators?.health?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.health.measured[name];
     }
-    if (type === 'energy' && facility.detailedIndicators.energy.measured[name]) {
+    if (type === 'energy' && facility.detailedIndicators?.energy?.measured[name]) {
       // @ts-ignore
       return facility.detailedIndicators.energy.measured[name];
     }
@@ -46,7 +46,36 @@ const getIndicatorValue = (facility: Facility, type: string, name: string): numb
 
 // Функція для генерації імітації історичних даних на основі поточного значення
 export const getHistoricalData = (facility: Facility, type: string, name: string) => {
-  const currentValue = getIndicatorValue(facility, type, name);
+  console.log("getHistoricalData params:", { type, name });
+  
+  // Отримуємо поточне значення з даних установи
+  let currentValue;
+  
+  try {
+    // Якщо передано тип та ім'я показника
+    if (type && name) {
+      // Переводимо назву показника з людського формату в key формат
+      const nameKey = convertIndicatorNameToKey(name);
+      console.log("Converted name to key:", nameKey);
+      
+      // Отримуємо значення з бази даних за типом та ключем
+      // @ts-ignore
+      if (facility.detailedIndicators && facility.detailedIndicators[type]?.measured) {
+        // @ts-ignore
+        currentValue = facility.detailedIndicators[type].measured[nameKey];
+        console.log("Found value:", currentValue, "for type:", type, "and key:", nameKey);
+      }
+    }
+  } catch (error) {
+    console.error("Error getting current value:", error);
+  }
+  
+  // Якщо не знайдено значення, використовуємо дефолтне
+  if (currentValue === undefined || currentValue === null) {
+    currentValue = 5.0;
+    console.log("Using default value:", currentValue);
+  }
+  
   const today = new Date();
   const data = [];
 
@@ -65,7 +94,56 @@ export const getHistoricalData = (facility: Facility, type: string, name: string
     });
   }
 
+  console.log("Generated historical data:", data);
   return data;
+};
+
+// Функція для конвертації назви індикатора з людського формату в ключовий
+const convertIndicatorNameToKey = (name: string): string => {
+  const nameMap: {[key: string]: string} = {
+    'Пил': 'dust',
+    'NO2': 'no2',
+    'SO2': 'so2',
+    'CO': 'co',
+    'Формальдегід': 'formaldehyde',
+    'Свинець': 'lead',
+    'Бензопірен': 'benzopyrene',
+    'Мікробіологічні показники': 'microbiological',
+    'Епідеміологічні показники': 'epidemiological',
+    'Органолептичні показники': 'organoleptic',
+    'Фізико-хімічні показники': 'physicochemical',
+    'Санітарно-токсикологічні показники': 'sanitary_toxicological',
+    'Радіація води': 'radiation',
+    'Гумус': 'humus',
+    'Фосфор': 'phosphorus',
+    'Калій': 'potassium',
+    'Солоність': 'salinity',
+    'Солонцюватість': 'solonetzicity',
+    'Хімічне забруднення': 'chemical_pollution',
+    'pH': 'ph',
+    'Коротко напівперіодні': 'short_half_life',
+    'Середньо напівперіодні': 'medium_half_life',
+    'Радіація повітря': 'air_radiation',
+    'Клас небезпеки': 'hazard_class',
+    'Токсичність': 'toxicity',
+    'Об\'єм відходів': 'volume',
+    'ВВП': 'gross_product',
+    'Вантажообіг': 'cargo_turnover',
+    'Пасажирообіг': 'passenger_turnover',
+    'Експорт': 'exports',
+    'Імпорт': 'imports',
+    'Зарплати': 'wages',
+    'Демографічні показники': 'demographic',
+    'Захворюваність': 'disease_prevalence',
+    'Інвалідність': 'disability',
+    'Фізичний розвиток': 'physical_development',
+    'Споживання води': 'water_consumption',
+    'Споживання електроенергії': 'electricity_consumption',
+    'Споживання газу': 'gas_consumption',
+    'Споживання тепла': 'heat_consumption'
+  };
+
+  return nameMap[name] || name.toLowerCase().replace(/\s+/g, '_');
 };
 
 // Функція для фільтрації об'єктів на основі критеріїв фільтрації

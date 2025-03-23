@@ -13,11 +13,16 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const popupsRef = useRef<{[id: string]: mapboxgl.Popup}>({});
 
   // Очищення всіх маркерів з мапи
   const clearMarkers = () => {
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
+    
+    // Очищаємо також всі попапи
+    Object.values(popupsRef.current).forEach(popup => popup.remove());
+    popupsRef.current = {};
   };
 
   useEffect(() => {
@@ -74,26 +79,9 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
             cursor: pointer;
             border: 2px solid white;
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: transform 0.3s ease;
           `;
           
-          // Додаємо ефект ховера
-          el.addEventListener('mouseenter', () => {
-            el.style.transform = 'scale(1.2)';
-          });
-          
-          el.addEventListener('mouseleave', () => {
-            el.style.transform = 'scale(1)';
-          });
-
-          const marker = new mapboxgl.Marker({
-            element: el,
-            anchor: 'center',
-          })
-            .setLngLat(facility.location)
-            .addTo(map.current!);
-            
-          // Додаємо підписи до маркерів
+          // Створюємо попап заздалегідь для кожного маркеру
           const popup = new mapboxgl.Popup({
             closeButton: false,
             closeOnClick: false,
@@ -106,13 +94,27 @@ const Map = ({ facilities, onFacilitySelect }: MapProps) => {
             </div>
           `);
           
+          // Зберігаємо попап
+          popupsRef.current[facility.id] = popup;
+          
+          const marker = new mapboxgl.Marker({
+            element: el,
+            anchor: 'center',
+          })
+            .setLngLat(facility.location)
+            .addTo(map.current!);
+            
+          // Показуємо/ховаємо попап при наведенні
           el.addEventListener('mouseenter', () => {
-            marker.setPopup(popup);
             popup.addTo(map.current!);
+            // Додаємо клас для збільшення без трансформації маркера
+            el.classList.add('marker-hover');
           });
           
           el.addEventListener('mouseleave', () => {
             popup.remove();
+            // Видаляємо клас
+            el.classList.remove('marker-hover');
           });
 
           // Додаємо обробник кліку

@@ -24,8 +24,15 @@ const TrendChart = ({ facility, indicatorType, indicatorName }: TrendChartProps)
   const [data, setData] = useState<any[]>([]);
 
   useEffect(() => {
+    console.log("TrendChart effect running with:", { 
+      facilityId: facility.id, 
+      indicatorType, 
+      indicatorName 
+    });
+    
     // Отримуємо історичні дані для індикатора
     const historicalData = getHistoricalData(facility, indicatorType, indicatorName);
+    console.log("Historical data received:", historicalData);
     setData(historicalData);
   }, [facility, indicatorType, indicatorName]);
 

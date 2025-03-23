@@ -98,6 +98,23 @@
   @apply border-gray-200;
 }
 
+/* Стилі для маркерів на карті */
+.marker {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.marker-hover {
+  /* Збільшуємо маркер змінюючи розмір, а не транформацію */
+  width: 28px !important;
+  height: 28px !important;
+  z-index: 10;
+}
+
 /* Анімації */
 @keyframes fadeIn {
   from {

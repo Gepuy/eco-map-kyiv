@@ -59,6 +59,7 @@ const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
     const [type, name] = value.split('.');
     const option = indicatorOptions.find(opt => opt.type === type && opt.name === name);
     if (option) {
+      console.log("Selected indicator:", option);
       setSelectedIndicator(option);
     }
   };
@@ -141,7 +142,10 @@ const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
             Графік зміни показника
           </h4>
           <div className="space-y-2">
-            <Select onValueChange={handleIndicatorSelect} defaultValue="air.dust">
+            <Select 
+              onValueChange={handleIndicatorSelect} 
+              defaultValue={`${selectedIndicator.type}.${selectedIndicator.name}`}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Оберіть показник" />
               </SelectTrigger>
