@@ -9,10 +9,11 @@ import {
 } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import DetailedIndicatorsPanel from "./DetailedIndicatorsPanel";
+import IntegratedIndicatorsPanel from "./IntegratedIndicatorsPanel";
 import TrendChart from "./TrendChart";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronUp, TrendingUp } from "lucide-react";
+import { ChevronDown, ChevronUp, TrendingUp, BarChart4 } from "lucide-react";
 import { 
   Select, 
   SelectContent, 
@@ -28,6 +29,7 @@ interface FacilityCardProps {
 
 const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
   const [showDetailedIndicators, setShowDetailedIndicators] = useState(false);
+  const [showIntegratedIndicators, setShowIntegratedIndicators] = useState(false);
   const [showTrendChart, setShowTrendChart] = useState(false);
   const [selectedIndicator, setSelectedIndicator] = useState<{
     type: string,
@@ -136,6 +138,27 @@ const FacilityCard = ({ facility, isVisible }: FacilityCardProps) => {
           </div>
         </div>
 
+        <Button 
+          variant="outline" 
+          className="w-full flex items-center justify-center" 
+          onClick={() => setShowIntegratedIndicators(!showIntegratedIndicators)}
+        >
+          {showIntegratedIndicators ? (
+            <>
+              <ChevronUp className="mr-2 h-4 w-4" />
+              Згорнути інтегральні показники
+            </>
+          ) : (
+            <>
+              <ChevronDown className="mr-2 h-4 w-4" />
+              <BarChart4 className="mr-2 h-4 w-4" />
+              Показати інтегральні показники
+            </>
+          )}
+        </Button>
+
+        {showIntegratedIndicators && <IntegratedIndicatorsPanel facility={facility} />}
+        
         <div className="space-y-2">
           <h4 className="text-sm font-medium flex items-center gap-1">
             <TrendingUp className="h-4 w-4 text-eco-700" />
