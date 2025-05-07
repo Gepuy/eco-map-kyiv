@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -93,16 +92,8 @@ export const CostEstimateForm = () => {
   };
   
   const handleExportToExcel = () => {
-    // Перетворюємо дані для експорту в Excel
-    const exportData = costEstimate.map(item => ({
-      'Назва заходу': item.name,
-      'Загальна вартість': item.totalCost,
-      'Кількість ресурсів': item.resources.length,
-      'Ресурси': item.resources.map(r => `${r.name} (${r.quantity} од.)`).join('; ')
-    }));
-    
     const title = `Кошторис витрат - ${getSelectedFacilityName()}`;
-    exportCostEstimateToExcel(exportData, title);
+    exportCostEstimateToExcel(costEstimate, title);
   };
   
   return (

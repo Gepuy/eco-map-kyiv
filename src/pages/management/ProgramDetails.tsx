@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -134,7 +133,7 @@ const ProgramDetails = () => {
     
     // Заходи по рокам
     programReport.years.forEach(year => {
-      programReport.measuresByYear[year].forEach((measure, index) => {
+      programReport.measuresByYear[year].forEach((measure) => {
         exportData.push({
           'Тип': `Захід (${year})`,
           'Назва заходу': measure.measure?.name || 'Невідомий захід',

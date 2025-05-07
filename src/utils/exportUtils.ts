@@ -5,7 +5,10 @@ import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, Borde
 import { MeasureCost, ProgramReport } from '@/types/managementTypes';
 
 // Функція для експорту кошторису в Excel
-export const exportCostEstimateToExcel = async (costEstimate: MeasureCost[]) => {
+export const exportCostEstimateToExcel = async (
+  costEstimate: MeasureCost[],
+  title: string = 'Кошторис витрат'
+) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Кошторис витрат');
 
@@ -15,7 +18,7 @@ export const exportCostEstimateToExcel = async (costEstimate: MeasureCost[]) => 
 
   // Додаємо заголовок
   worksheet.mergeCells('A1:F1');
-  worksheet.getCell('A1').value = 'Кошторис витрат на впровадження заходів';
+  worksheet.getCell('A1').value = title || 'Кошторис витрат на впровадження заходів';
   worksheet.getCell('A1').alignment = { horizontal: 'center' };
 
   // Додаємо заголовки стовпців
@@ -109,11 +112,14 @@ export const exportCostEstimateToExcel = async (costEstimate: MeasureCost[]) => 
   // Експортуємо Excel файл
   const buffer = await workbook.xlsx.writeBuffer();
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-  saveAs(blob, `Кошторис витрат ${new Date().toLocaleDateString('uk-UA')}.xlsx`);
+  saveAs(blob, `${title} ${new Date().toLocaleDateString('uk-UA')}.xlsx`);
 };
 
 // Функція для експорту кошторису в Word
-export const exportCostEstimateToWord = async (costEstimate: MeasureCost[]) => {
+export const exportCostEstimateToWord = async (
+  costEstimate: MeasureCost[],
+  title: string = 'Кошторис витрат'
+) => {
   // Створюємо таблицю
   const tableRows: TableRow[] = [];
 
@@ -297,7 +303,7 @@ export const exportCostEstimateToWord = async (costEstimate: MeasureCost[]) => {
         properties: {},
         children: [
           new Paragraph({
-            text: 'Кошторис витрат на впровадження заходів',
+            text: title || 'Кошторис витрат на впровадження заходів',
             heading: HeadingLevel.HEADING_1,
             alignment: 'center',
           }),
@@ -306,7 +312,7 @@ export const exportCostEstimateToWord = async (costEstimate: MeasureCost[]) => {
             rows: tableRows,
             width: {
               size: 100,
-              type: '%',
+              type: 'pct', // Fixed: changed "%" to "pct"
             },
             borders: {
               top: {
@@ -340,7 +346,7 @@ export const exportCostEstimateToWord = async (costEstimate: MeasureCost[]) => {
             children: [
               new TextRun({
                 text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
-                italic: true,
+                italics: true, // Fixed: changed "italic" to "italics"
               }),
             ],
             alignment: 'right',
@@ -353,10 +359,197 @@ export const exportCostEstimateToWord = async (costEstimate: MeasureCost[]) => {
   // Експортуємо Word документ
   const buffer = await Packer.toBuffer(doc);
   const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-  saveAs(blob, `Кошторис витрат ${new Date().toLocaleDateString('uk-UA')}.docx`);
+  saveAs(blob, `${title} ${new Date().toLocaleDateString('uk-UA')}.docx`);
 };
 
-// Функція для експорту програми розвитку в Excel
+// Added missing export functions
+// Функція для експорту до Excel (загальна)
+export const exportToExcel = async (
+  data: Record<string, any>[], 
+  title: string
+) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet(title);
+
+  // Стилі для заголовків
+  worksheet.getRow(1).font = { bold: true, size: 14 };
+  worksheet.getRow(2).font = { bold: true };
+
+  // Додаємо заголовок
+  worksheet.mergeCells('A1:F1');
+  worksheet.getCell('A1').value = title;
+  worksheet.getCell('A1').alignment = { horizontal: 'center' };
+
+  // Отримуємо заголовки колонок з першого об'єкту
+  if (data.length > 0) {
+    const headers = Object.keys(data[0]);
+    worksheet.getRow(2).values = headers;
+
+    // Додаємо дані
+    data.forEach((item, index) => {
+      const rowIndex = index + 3;
+      const rowData = Object.values(item);
+      worksheet.getRow(rowIndex).values = rowData;
+    });
+
+    // Форматуємо таблицю
+    for (let i = 2; i <= data.length + 2; i++) {
+      for (let j = 1; j <= headers.length; j++) {
+        const cell = worksheet.getCell(`${String.fromCharCode(64 + j)}${i}`);
+        cell.border = {
+          top: { style: 'thin' },
+          left: { style: 'thin' },
+          bottom: { style: 'thin' },
+          right: { style: 'thin' }
+        };
+      }
+    }
+  }
+
+  // Експортуємо Excel файл
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, `${title} ${new Date().toLocaleDateString('uk-UA')}.xlsx`);
+};
+
+// Функція для експорту регіональної програми у Word
+export const exportRegionalProgramToWord = async (
+  programReport: ProgramReport,
+  title: string
+) => {
+  // Створюємо документ
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: [
+          new Paragraph({
+            text: title || programReport.program.name,
+            heading: HeadingLevel.HEADING_1,
+            alignment: 'center',
+          }),
+          new Paragraph(''),
+          new Paragraph({
+            text: `Період: ${new Date(programReport.program.start_date).toLocaleDateString('uk-UA')} - ${new Date(programReport.program.end_date).toLocaleDateString('uk-UA')}`,
+          }),
+          new Paragraph({
+            text: `Загальний бюджет: ${programReport.totalBudget.toLocaleString('uk-UA')} грн`,
+          }),
+          new Paragraph(''),
+          new Paragraph({
+            text: 'Перелік заходів:',
+            heading: HeadingLevel.HEADING_2,
+          }),
+          // Додаємо таблицю з заходами по рокам
+          ...programReport.years.map(year => {
+            const yearMeasures = programReport.measuresByYear[year];
+            const tableRows = [
+              // Заголовок таблиці
+              new TableRow({
+                tableHeader: true,
+                children: [
+                  new TableCell({
+                    children: [new Paragraph(`Заходи на ${year} рік`)],
+                    columnSpan: 4,
+                  }),
+                ],
+              }),
+              // Заголовки колонок
+              new TableRow({
+                tableHeader: true,
+                children: [
+                  new TableCell({ children: [new Paragraph('Назва')] }),
+                  new TableCell({ children: [new Paragraph('Категорія')] }),
+                  new TableCell({ children: [new Paragraph('Ефективність')] }),
+                  new TableCell({ children: [new Paragraph('Фінансування')] }),
+                ],
+              }),
+              // Дані
+              ...yearMeasures.map(measure => 
+                new TableRow({
+                  children: [
+                    new TableCell({ 
+                      children: [new Paragraph(measure.measure?.name || `Захід #${measure.measure_id}`)] 
+                    }),
+                    new TableCell({ 
+                      children: [new Paragraph(measure.measure?.category?.name || 'Не визначено')] 
+                    }),
+                    new TableCell({ 
+                      children: [new Paragraph(`${measure.measure?.effectiveness || 0}%`)] 
+                    }),
+                    new TableCell({ 
+                      children: [
+                        new Paragraph({
+                          text: measure.planned_funding.toLocaleString('uk-UA'),
+                          alignment: 'right',
+                        })
+                      ] 
+                    }),
+                  ],
+                })
+              ),
+              // Підсумок
+              new TableRow({
+                children: [
+                  new TableCell({ 
+                    children: [
+                      new Paragraph({
+                        text: `Всього за ${year} рік:`,
+                        alignment: 'right',
+                      })
+                    ],
+                    columnSpan: 3,
+                  }),
+                  new TableCell({ 
+                    children: [
+                      new Paragraph({
+                        text: programReport.totalByYear[year].toLocaleString('uk-UA'),
+                        alignment: 'right',
+                      })
+                    ] 
+                  }),
+                ],
+              }),
+            ];
+
+            return [
+              new Paragraph(''),
+              new Table({
+                rows: tableRows,
+                width: { size: 100, type: 'pct' },
+                borders: {
+                  top: { style: BorderStyle.SINGLE, size: 1 },
+                  bottom: { style: BorderStyle.SINGLE, size: 1 },
+                  left: { style: BorderStyle.SINGLE, size: 1 },
+                  right: { style: BorderStyle.SINGLE, size: 1 },
+                  insideHorizontal: { style: BorderStyle.SINGLE, size: 1 },
+                  insideVertical: { style: BorderStyle.SINGLE, size: 1 },
+                },
+              }),
+            ];
+          }).flat(),
+          new Paragraph(''),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
+                italics: true,
+              }),
+            ],
+            alignment: 'right',
+          }),
+        ],
+      },
+    ],
+  });
+
+  // Експортуємо Word документ
+  const buffer = await Packer.toBuffer(doc);
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  saveAs(blob, `${title} ${new Date().toLocaleDateString('uk-UA')}.docx`);
+};
+
+// Зберігаємо оригінальну функцію для зворотньої сумісності
 export const exportProgramToExcel = async (programReport: ProgramReport) => {
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet('Програма розвитку');

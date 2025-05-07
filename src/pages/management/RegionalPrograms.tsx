@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,7 +18,7 @@ import { Plus, Calendar, FileText, FileSpreadsheet } from 'lucide-react';
 import { useRegionalPrograms } from '@/hooks/useRegionalPrograms';
 import { RegionalProgram } from '@/types/managementTypes';
 import { useNavigate } from 'react-router-dom';
-import { exportToExcel, exportRegionalProgramToWord } from '@/utils/exportUtils';
+import { exportToExcel } from '@/utils/exportUtils';
 
 const RegionalPrograms = () => {
   const navigate = useNavigate();
