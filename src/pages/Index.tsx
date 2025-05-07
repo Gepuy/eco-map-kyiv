@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useMemo } from "react";
+import { Link } from "react-router-dom";
 import Map from "@/components/Map";
 import FacilityCard from "@/components/FacilityCard";
 import FilterPanel, { FilterOptions } from "@/components/FilterPanel";
@@ -7,7 +8,8 @@ import { Facility } from "@/types/supabase";
 import { useFacilities } from "@/hooks/useFacilities";
 import { filterFacilities } from "@/utils/dataUtils";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChartBar, ListFilter, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ChartBar, ListFilter, Filter, Settings } from "lucide-react";
 
 const Index = () => {
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null);
@@ -59,15 +61,31 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-eco-100 to-eco-200">
       <div className="container mx-auto p-4 lg:p-8">
-        <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-3xl lg:text-4xl font-bold text-eco-900 mb-2">
-            Екологічний моніторинг промислових об'єктів Києва
-          </h1>
-          <p className="text-eco-700 text-lg flex items-center justify-center gap-2">
-            <Filter className="h-5 w-5" />
-            Інтерактивна карта впливу на довкілля з фільтрацією та аналізом
-            <ChartBar className="h-5 w-5" />
-          </p>
+        <div className="flex justify-between items-center mb-8 animate-fade-in">
+          <div>
+            <h1 className="text-3xl lg:text-4xl font-bold text-eco-900 mb-2">
+              Екологічний моніторинг промислових об'єктів Києва
+            </h1>
+            <p className="text-eco-700 text-lg flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Інтерактивна карта впливу на довкілля з фільтрацією та аналізом
+              <ChartBar className="h-5 w-5" />
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/management/measures">
+                <Settings className="h-5 w-5" />
+                <span className="hidden md:inline">Управління заходами</span>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="gap-2">
+              <Link to="/management/programs">
+                <ChartBar className="h-5 w-5" />
+                <span className="hidden md:inline">Програми розвитку</span>
+              </Link>
+            </Button>
+          </div>
         </div>
 
         {loading ? (

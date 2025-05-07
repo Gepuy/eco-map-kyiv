@@ -1,376 +1,488 @@
 
 import { saveAs } from 'file-saver';
-import * as XLSX from 'exceljs';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, TableLayoutType, BorderStyle } from 'docx';
-import type { ProgramReport, MeasureCost } from '@/types/managementTypes';
+import ExcelJS from 'exceljs';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, HeadingLevel } from 'docx';
+import { MeasureCost, ProgramReport } from '@/types/managementTypes';
 
-// Функція для експорту у формат Excel
-export const exportToExcel = async (data: any, fileName: string) => {
-  const workbook = new XLSX.Workbook();
-  const worksheet = workbook.addWorksheet('Data');
-  
-  if (Array.isArray(data)) {
-    // Для масивів даних, використовуємо перший елемент для заголовків
-    if (data.length > 0) {
-      const headers = Object.keys(data[0]);
-      worksheet.addRow(headers);
+// Функція для експорту кошторису в Excel
+export const exportCostEstimateToExcel = async (costEstimate: MeasureCost[]) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Кошторис витрат');
+
+  // Стилі для заголовків
+  worksheet.getRow(1).font = { bold: true, size: 14 };
+  worksheet.getRow(2).font = { bold: true };
+
+  // Додаємо заголовок
+  worksheet.mergeCells('A1:F1');
+  worksheet.getCell('A1').value = 'Кошторис витрат на впровадження заходів';
+  worksheet.getCell('A1').alignment = { horizontal: 'center' };
+
+  // Додаємо заголовки стовпців
+  worksheet.getRow(2).values = [
+    '№', 'Назва заходу', 'Ресурс', 'Кількість', 'Ціна за од., грн', 'Загальна вартість, грн'
+  ];
+
+  // Встановлюємо ширину стовпців
+  worksheet.getColumn(1).width = 5;
+  worksheet.getColumn(2).width = 40;
+  worksheet.getColumn(3).width = 30;
+  worksheet.getColumn(4).width = 15;
+  worksheet.getColumn(5).width = 20;
+  worksheet.getColumn(6).width = 25;
+
+  // Заповнюємо дані
+  let rowIndex = 3;
+  let measureIndex = 1;
+  let totalCost = 0;
+
+  for (const measure of costEstimate) {
+    const firstRow = rowIndex;
+    
+    for (let i = 0; i < measure.resources.length; i++) {
+      const resource = measure.resources[i];
       
-      // Додаємо дані
-      data.forEach(item => {
-        const values = headers.map(header => item[header]);
-        worksheet.addRow(values);
-      });
+      worksheet.getRow(rowIndex).values = [
+        i === 0 ? measureIndex : '',
+        i === 0 ? measure.name : '',
+        resource.name,
+        resource.quantity,
+        resource.unitPrice,
+        resource.totalPrice
+      ];
+
+      if (i === 0) {
+        worksheet.getCell(`A${rowIndex}`).alignment = { vertical: 'top' };
+        worksheet.getCell(`B${rowIndex}`).alignment = { vertical: 'top' };
+      }
+      
+      rowIndex++;
     }
-  } else {
-    // Для об'єктів, додаємо ключі та значення
-    Object.entries(data).forEach(([key, value]) => {
-      worksheet.addRow([key, value]);
-    });
+    
+    // Якщо захід має більше одного ресурсу, об'єднуємо клітинки
+    if (measure.resources.length > 1) {
+      worksheet.mergeCells(`A${firstRow}:A${rowIndex - 1}`);
+      worksheet.mergeCells(`B${firstRow}:B${rowIndex - 1}`);
+    }
+    
+    // Додаємо рядок з загальною вартістю заходу
+    worksheet.getRow(rowIndex).values = [
+      '', '', '', '', 'Разом за заходом:', measure.totalCost
+    ];
+    
+    worksheet.getRow(rowIndex).font = { bold: true };
+    worksheet.getCell(`F${rowIndex}`).numFmt = '# ##0.00 ₴';
+    
+    rowIndex++;
+    measureIndex++;
+    totalCost += measure.totalCost;
   }
-  
-  // Автоматична ширина стовпців
-  worksheet.columns.forEach(column => {
-    let maxLength = 0;
-    column.eachCell({ includeEmpty: true }, cell => {
-      const cellLength = cell.value ? cell.value.toString().length : 10;
-      maxLength = Math.max(maxLength, cellLength);
-    });
-    column.width = maxLength + 2;
-  });
-  
-  // Створюємо буфер та зберігаємо файл
+
+  // Додаємо рядок з загальною вартістю всіх заходів
+  worksheet.getRow(rowIndex).values = [
+    '', '', '', '', 'ЗАГАЛЬНА ВАРТІСТЬ:', totalCost
+  ];
+  worksheet.getRow(rowIndex).font = { bold: true };
+  worksheet.getRow(rowIndex).height = 20;
+  worksheet.getCell(`F${rowIndex}`).numFmt = '# ##0.00 ₴';
+
+  // Форматуємо числові стовпці
+  for (let i = 3; i < rowIndex; i++) {
+    worksheet.getCell(`D${i}`).numFmt = '# ##0.00';
+    worksheet.getCell(`E${i}`).numFmt = '# ##0.00 ₴';
+    worksheet.getCell(`F${i}`).numFmt = '# ##0.00 ₴';
+  }
+
+  // Додаємо границі для всієї таблиці
+  for (let i = 2; i <= rowIndex; i++) {
+    for (let j = 1; j <= 6; j++) {
+      const cell = worksheet.getCell(`${String.fromCharCode(64 + j)}${i}`);
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    }
+  }
+
+  // Експортуємо Excel файл
   const buffer = await workbook.xlsx.writeBuffer();
-  const blob = new Blob([buffer], { 
-    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
-  });
-  saveAs(blob, `${fileName}.xlsx`);
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, `Кошторис витрат ${new Date().toLocaleDateString('uk-UA')}.xlsx`);
 };
 
-// Функція для експорту кошторису у Word
-export const exportCostEstimateToWord = async (costData: MeasureCost[], title: string) => {
-  // Створюємо новий документ
-  const doc = new Document({
-    title: title,
-    description: 'Кошторис витрат на впровадження заходів',
-    sections: [{
+// Функція для експорту кошторису в Word
+export const exportCostEstimateToWord = async (costEstimate: MeasureCost[]) => {
+  // Створюємо таблицю
+  const tableRows: TableRow[] = [];
+
+  // Додаємо рядок заголовків
+  tableRows.push(
+    new TableRow({
+      tableHeader: true,
       children: [
-        new Paragraph({
-          text: title,
-          heading: HeadingLevel.HEADING_1,
-          alignment: 'center',
+        new TableCell({
+          width: {
+            size: 500,
+            type: 'dxa',
+          },
+          children: [new Paragraph('№')],
+          verticalAlign: 'center',
         }),
-        new Paragraph({ text: '' }),
-        createCostEstimateTable(costData),
-        new Paragraph({ text: '' }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Загальна вартість: ${formatCurrency(costData.reduce((sum, item) => sum + item.totalCost, 0))}`,
-              bold: true,
-              size: 28,
-            }),
-          ],
-          alignment: 'right',
+        new TableCell({
+          width: {
+            size: 3000,
+            type: 'dxa',
+          },
+          children: [new Paragraph('Назва заходу')],
+          verticalAlign: 'center',
         }),
-        new Paragraph({ text: '' }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
-              size: 24,
-            }),
-          ],
-          alignment: 'right',
+        new TableCell({
+          width: {
+            size: 2000,
+            type: 'dxa',
+          },
+          children: [new Paragraph('Ресурс')],
+          verticalAlign: 'center',
+        }),
+        new TableCell({
+          width: {
+            size: 1000,
+            type: 'dxa',
+          },
+          children: [new Paragraph('Кількість')],
+          verticalAlign: 'center',
+        }),
+        new TableCell({
+          width: {
+            size: 1500,
+            type: 'dxa',
+          },
+          children: [new Paragraph('Ціна за од., грн')],
+          verticalAlign: 'center',
+        }),
+        new TableCell({
+          width: {
+            size: 1500,
+            type: 'dxa',
+          },
+          children: [new Paragraph('Загальна вартість, грн')],
+          verticalAlign: 'center',
         }),
       ],
-    }],
-  });
+    })
+  );
 
-  // Зберігаємо файл
-  const buffer = await Packer.toBuffer(doc);
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-  saveAs(blob, `${title}.docx`);
-};
+  // Додаємо рядки з даними
+  let measureIndex = 1;
+  let totalCost = 0;
 
-// Функція для створення таблиці з даними про кошторис
-const createCostEstimateTable = (costData: MeasureCost[]): Table => {
-  const table = new Table({
-    width: {
-      size: 100,
-      type: WidthType.PERCENTAGE,
-    },
-    layout: TableLayoutType.FIXED,
-    borders: {
-      top: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      bottom: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      left: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      right: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-    },
-    rows: [
-      // Заголовок таблиці
+  for (const measure of costEstimate) {
+    totalCost += measure.totalCost;
+
+    for (let i = 0; i < measure.resources.length; i++) {
+      const resource = measure.resources[i];
+      
+      tableRows.push(
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [new Paragraph(i === 0 ? measureIndex.toString() : '')],
+            }),
+            new TableCell({
+              children: [new Paragraph(i === 0 ? measure.name : '')],
+            }),
+            new TableCell({
+              children: [new Paragraph(resource.name)],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: resource.quantity.toString(),
+                  alignment: 'right',
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: resource.unitPrice.toLocaleString('uk-UA', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
+                  alignment: 'right',
+                }),
+              ],
+            }),
+            new TableCell({
+              children: [
+                new Paragraph({
+                  text: resource.totalPrice.toLocaleString('uk-UA', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  }),
+                  alignment: 'right',
+                }),
+              ],
+            }),
+          ],
+        })
+      );
+    }
+
+    // Додаємо рядок з загальною вартістю заходу
+    tableRows.push(
       new TableRow({
-        tableHeader: true,
-        height: {
-          value: 500,
-        },
         children: [
           new TableCell({
-            width: {
-              size: 10,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: '№', alignment: 'center', bold: true })],
+            columnSpan: 5,
+            children: [
+              new Paragraph({
+                text: 'Разом за заходом:',
+                alignment: 'right',
+              }),
+            ],
           }),
           new TableCell({
-            width: {
-              size: 40,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: 'Назва заходу', alignment: 'center', bold: true })],
-          }),
-          new TableCell({
-            width: {
-              size: 25,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: 'Ресурси', alignment: 'center', bold: true })],
-          }),
-          new TableCell({
-            width: {
-              size: 25,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: 'Вартість', alignment: 'center', bold: true })],
+            children: [
+              new Paragraph({
+                text: measure.totalCost.toLocaleString('uk-UA', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }),
+                alignment: 'right',
+              }),
+            ],
           }),
         ],
-      }),
-      // Додаємо рядки з даними
-      ...costData.map((item, index) => createCostEstimateRow(item, index + 1)),
-    ],
-  });
-  
-  return table;
-};
+      })
+    );
+    
+    measureIndex++;
+  }
 
-// Функція для створення рядка таблиці з даними про кошторис
-const createCostEstimateRow = (item: MeasureCost, index: number): TableRow => {
-  return new TableRow({
-    children: [
-      new TableCell({
-        children: [new Paragraph({ text: index.toString(), alignment: 'center' })],
-      }),
-      new TableCell({
-        children: [new Paragraph({ text: item.name })],
-      }),
-      new TableCell({
-        children: item.resources.map(resource => 
-          new Paragraph({ 
-            text: `${resource.name}: ${resource.quantity} од. (${formatCurrency(resource.unitPrice)} за од.)`,
-          })
-        ),
-      }),
-      new TableCell({
-        children: [new Paragraph({ 
-          text: formatCurrency(item.totalCost), 
-          alignment: 'right',
-          bold: true,
-        })],
-      }),
-    ],
-  });
-};
-
-// Функція для експорту програми розвитку у Word
-export const exportRegionalProgramToWord = async (programReport: ProgramReport, title: string) => {
-  // Створюємо новий документ
-  const doc = new Document({
-    title: title,
-    description: 'Програма розвитку регіону',
-    sections: [{
+  // Додаємо рядок з загальною вартістю
+  tableRows.push(
+    new TableRow({
       children: [
-        new Paragraph({
-          text: title,
-          heading: HeadingLevel.HEADING_1,
-          alignment: 'center',
+        new TableCell({
+          columnSpan: 5,
+          children: [
+            new Paragraph({
+              text: 'ЗАГАЛЬНА ВАРТІСТЬ:',
+              alignment: 'right',
+            }),
+          ],
         }),
-        new Paragraph({
-          text: programReport.program.name,
-          heading: HeadingLevel.HEADING_2,
-          alignment: 'center',
+        new TableCell({
+          children: [
+            new Paragraph({
+              text: totalCost.toLocaleString('uk-UA', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              }),
+              alignment: 'right',
+            }),
+          ],
         }),
-        new Paragraph({ text: '' }),
-        
-        new Paragraph({
-          text: "Загальна інформація",
-          heading: HeadingLevel.HEADING_3,
-        }),
-        new Paragraph({
-          text: `Термін дії програми: ${formatDate(programReport.program.start_date)} - ${formatDate(programReport.program.end_date)}`,
-        }),
-        new Paragraph({
-          text: `Загальний бюджет: ${formatCurrency(programReport.totalBudget)}`,
-        }),
-        new Paragraph({
-          text: `Кількість заходів: ${programReport.measuresCount}`,
-        }),
-        new Paragraph({ text: '' }),
-        
-        new Paragraph({
-          text: "Розподіл коштів за роками",
-          heading: HeadingLevel.HEADING_3,
-        }),
-        ...programReport.years.map(year => new Paragraph({
-          text: `${year} рік: ${formatCurrency(programReport.totalByYear[year])}`,
-        })),
-        new Paragraph({ text: '' }),
-        
-        new Paragraph({
-          text: "Розподіл коштів за напрямками",
-          heading: HeadingLevel.HEADING_3,
-        }),
-        ...programReport.categoriesDistribution.map(cat => new Paragraph({
-          text: `${cat.categoryName}: ${formatCurrency(cat.funding)} (${cat.percentage.toFixed(1)}%)`,
-        })),
-        new Paragraph({ text: '' }),
-        
-        new Paragraph({
-          text: "Заходи за роками",
-          heading: HeadingLevel.HEADING_3,
-        }),
-        
-        // Додаємо таблиці заходів по рокам
-        ...programReport.years.flatMap(year => [
+      ],
+    })
+  );
+
+  // Створюємо документ
+  const doc = new Document({
+    sections: [
+      {
+        properties: {},
+        children: [
           new Paragraph({
-            text: `${year} рік`,
-            heading: HeadingLevel.HEADING_4,
+            text: 'Кошторис витрат на впровадження заходів',
+            heading: HeadingLevel.HEADING_1,
+            alignment: 'center',
           }),
-          createYearMeasuresTable(programReport.measuresByYear[year], year),
-          new Paragraph({ text: '' }),
-        ]),
-        
-        new Paragraph({ text: '' }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
-              size: 24,
-            }),
-          ],
-          alignment: 'right',
-        }),
-      ],
-    }],
-  });
-
-  // Зберігаємо файл
-  const buffer = await Packer.toBuffer(doc);
-  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
-  saveAs(blob, `${title}.docx`);
-};
-
-// Функція для створення таблиці з заходами за рік
-const createYearMeasuresTable = (measures: any[], year: number): Table => {
-  const table = new Table({
-    width: {
-      size: 100,
-      type: WidthType.PERCENTAGE,
-    },
-    layout: TableLayoutType.FIXED,
-    borders: {
-      top: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      bottom: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      left: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      right: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '#000000' },
-    },
-    rows: [
-      // Заголовок таблиці
-      new TableRow({
-        tableHeader: true,
-        height: {
-          value: 500,
-        },
-        children: [
-          new TableCell({
+          new Paragraph(''),
+          new Table({
+            rows: tableRows,
             width: {
-              size: 10,
-              type: WidthType.PERCENTAGE,
+              size: 100,
+              type: '%',
             },
-            children: [new Paragraph({ text: '№', alignment: 'center', bold: true })],
+            borders: {
+              top: {
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+              bottom: {
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+              left: {
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+              right: {
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+              insideHorizontal: {
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+              insideVertical: {
+                style: BorderStyle.SINGLE,
+                size: 1,
+              },
+            },
           }),
-          new TableCell({
-            width: {
-              size: 50,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: 'Назва заходу', alignment: 'center', bold: true })],
-          }),
-          new TableCell({
-            width: {
-              size: 20,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: 'Категорія', alignment: 'center', bold: true })],
-          }),
-          new TableCell({
-            width: {
-              size: 20,
-              type: WidthType.PERCENTAGE,
-            },
-            children: [new Paragraph({ text: 'Фінансування', alignment: 'center', bold: true })],
+          new Paragraph(''),
+          new Paragraph({
+            children: [
+              new TextRun({
+                text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
+                italic: true,
+              }),
+            ],
+            alignment: 'right',
           }),
         ],
-      }),
-      // Додаємо рядки з даними
-      ...measures.map((item, index) => createYearMeasureRow(item, index + 1)),
+      },
     ],
   });
+
+  // Експортуємо Word документ
+  const buffer = await Packer.toBuffer(doc);
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' });
+  saveAs(blob, `Кошторис витрат ${new Date().toLocaleDateString('uk-UA')}.docx`);
+};
+
+// Функція для експорту програми розвитку в Excel
+export const exportProgramToExcel = async (programReport: ProgramReport) => {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Програма розвитку');
+
+  // Стилі для заголовків
+  worksheet.getRow(1).font = { bold: true, size: 14 };
+  worksheet.getRow(2).font = { bold: true };
+  worksheet.getRow(3).font = { bold: true };
+
+  // Додаємо заголовок
+  worksheet.mergeCells('A1:E1');
+  worksheet.getCell('A1').value = programReport.program.name;
+  worksheet.getCell('A1').alignment = { horizontal: 'center' };
+
+  // Додаємо інформацію про програму
+  worksheet.getCell('A2').value = 'Період:';
+  worksheet.getCell('B2').value = `${new Date(programReport.program.start_date).toLocaleDateString('uk-UA')} - ${new Date(programReport.program.end_date).toLocaleDateString('uk-UA')}`;
+  worksheet.getCell('D2').value = 'Бюджет:';
+  worksheet.getCell('E2').value = programReport.totalBudget.toLocaleString('uk-UA') + ' грн';
+
+  // Встановлюємо ширину стовпців
+  worksheet.getColumn(1).width = 5;
+  worksheet.getColumn(2).width = 40;
+  worksheet.getColumn(3).width = 20;
+  worksheet.getColumn(4).width = 15;
+  worksheet.getColumn(5).width = 25;
+
+  // Додаємо заголовки таблиці
+  worksheet.getCell('A4').value = '№';
+  worksheet.getCell('B4').value = 'Назва заходу';
+  worksheet.getCell('C4').value = 'Категорія';
+  worksheet.getCell('D4').value = 'Рік';
+  worksheet.getCell('E4').value = 'Фінансування, грн';
+
+  let rowIndex = 5;
+  let measureIndex = 1;
+
+  // Додаємо дані по рокам
+  for (const year of programReport.years) {
+    const yearMeasures = programReport.measuresByYear[year];
+    
+    for (const measure of yearMeasures) {
+      worksheet.getRow(rowIndex).values = [
+        measureIndex,
+        measure.measure?.name || `Захід #${measure.measure_id}`,
+        measure.measure?.category?.name || 'Не визначено',
+        year,
+        measure.planned_funding
+      ];
+      
+      // Форматування
+      worksheet.getCell(`E${rowIndex}`).numFmt = '# ##0.00 ₴';
+      
+      rowIndex++;
+      measureIndex++;
+    }
+    
+    // Додаємо підсумок за рік
+    worksheet.getRow(rowIndex).values = [
+      '', 'Всього за ' + year + ' рік:', '', '', programReport.totalByYear[year]
+    ];
+    
+    worksheet.getRow(rowIndex).font = { bold: true };
+    worksheet.getCell(`E${rowIndex}`).numFmt = '# ##0.00 ₴';
+    
+    rowIndex += 2; // Додаємо пустий рядок
+  }
+
+  // Додаємо загальний підсумок
+  const totalFunding = programReport.years.reduce((sum, year) => sum + programReport.totalByYear[year], 0);
   
-  return table;
-};
+  worksheet.getRow(rowIndex).values = [
+    '', 'ЗАГАЛЬНЕ ФІНАНСУВАННЯ:', '', '', totalFunding
+  ];
+  
+  worksheet.getRow(rowIndex).font = { bold: true };
+  worksheet.getCell(`E${rowIndex}`).numFmt = '# ##0.00 ₴';
+  
+  rowIndex += 2;
 
-// Функція для створення рядка таблиці з заходами за рік
-const createYearMeasureRow = (item: any, index: number): TableRow => {
-  return new TableRow({
-    children: [
-      new TableCell({
-        children: [new Paragraph({ text: index.toString(), alignment: 'center' })],
-      }),
-      new TableCell({
-        children: [new Paragraph({ text: item.measure?.name || 'Невідомий захід' })],
-      }),
-      new TableCell({
-        children: [new Paragraph({ 
-          text: item.measure?.category?.name || 'Не вказано',
-          alignment: 'center',
-        })],
-      }),
-      new TableCell({
-        children: [new Paragraph({ 
-          text: formatCurrency(item.planned_funding), 
-          alignment: 'right',
-        })],
-      }),
-    ],
-  });
-};
+  // Додаємо розподіл по категоріях
+  worksheet.getCell(`A${rowIndex}`).value = 'Розподіл за категоріями';
+  worksheet.getCell(`A${rowIndex}`).font = { bold: true, size: 12 };
+  rowIndex++;
 
-// Допоміжні функції
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('uk-UA', { 
-    style: 'currency', 
-    currency: 'UAH',
-    maximumFractionDigits: 0
-  }).format(value);
-};
+  worksheet.getRow(rowIndex).values = [
+    '№', 'Категорія', 'Кількість заходів', 'Фінансування, грн', 'Відсоток від бюджету'
+  ];
+  
+  worksheet.getRow(rowIndex).font = { bold: true };
+  
+  rowIndex++;
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
+  // Додаємо дані про категорії
+  let catIndex = 1;
+  
+  for (const category of programReport.categoriesDistribution) {
+    worksheet.getRow(rowIndex).values = [
+      catIndex,
+      category.categoryName,
+      category.count,
+      category.funding,
+      category.percentage.toFixed(2) + '%'
+    ];
+    
+    worksheet.getCell(`D${rowIndex}`).numFmt = '# ##0.00 ₴';
+    
+    rowIndex++;
+    catIndex++;
+  }
+
+  // Додаємо границі для всієї таблиці
+  for (let i = 4; i < rowIndex; i++) {
+    for (let j = 1; j <= 5; j++) {
+      const cell = worksheet.getCell(`${String.fromCharCode(64 + j)}${i}`);
+      cell.border = {
+        top: { style: 'thin' },
+        left: { style: 'thin' },
+        bottom: { style: 'thin' },
+        right: { style: 'thin' }
+      };
+    }
+  }
+
+  // Експортуємо Excel файл
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  saveAs(blob, `Програма розвитку ${programReport.program.name}.xlsx`);
 };

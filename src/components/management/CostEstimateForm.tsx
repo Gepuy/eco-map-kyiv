@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,7 @@ import { useFacilities } from '@/hooks/useFacilities';
 import { useFacilityMeasures } from '@/hooks/useFacilityMeasures';
 import { MeasureCost, MeasureStatus } from '@/types/managementTypes';
 import { FileSpreadsheet, FileText } from 'lucide-react';
-import { exportCostEstimateToWord, exportToExcel } from '@/utils/exportUtils';
+import { exportCostEstimateToExcel, exportCostEstimateToWord } from '@/utils/exportUtils';
 
 export const CostEstimateForm = () => {
   const { facilities } = useFacilities();
@@ -102,7 +101,7 @@ export const CostEstimateForm = () => {
     }));
     
     const title = `Кошторис витрат - ${getSelectedFacilityName()}`;
-    exportToExcel(exportData, title);
+    exportCostEstimateToExcel(exportData, title);
   };
   
   return (
@@ -156,7 +155,7 @@ export const CostEstimateForm = () => {
             <CardTitle>Кошторис витрат</CardTitle>
             <CardDescription>
               {selectedFacilityId 
-                ? `Розрахунок витрат для об'єкту "${getSelectedFacilityName()}"`
+                ? `Розрахунок витрат для об'єкту "${getSelectedFacilityName()"`
                 : 'Виберіть об\'єкт для розрахунку витрат'}
             </CardDescription>
           </div>

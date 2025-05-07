@@ -23,7 +23,7 @@ export const useFacilityMeasures = (facilityId?: number) => {
           .from('object_measures')
           .select(`
             *,
-            measure:measures(*, category:categories(id, name))
+            measure:measures(*, category:categories(id, name, description))
           `)
           .eq('facility_id', facilityId)
           .order('priority');
@@ -31,7 +31,7 @@ export const useFacilityMeasures = (facilityId?: number) => {
         if (error) throw error;
 
         if (data) {
-          setMeasures(data);
+          setMeasures(data as ObjectMeasure[]);
         }
       } catch (error) {
         console.error('Error fetching facility measures:', error);
@@ -56,19 +56,19 @@ export const useFacilityMeasures = (facilityId?: number) => {
         .insert(measure)
         .select(`
           *,
-          measure:measures(*, category:categories(id, name))
+          measure:measures(*, category:categories(id, name, description))
         `)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        setMeasures([...measures, data]);
+        setMeasures([...measures, data as ObjectMeasure]);
         toast({
           title: 'Успішно',
           description: 'Захід успішно додано для об\'єкту'
         });
-        return data;
+        return data as ObjectMeasure;
       }
     } catch (error) {
       console.error('Error adding facility measure:', error);
@@ -89,14 +89,14 @@ export const useFacilityMeasures = (facilityId?: number) => {
         .eq('id', id)
         .select(`
           *,
-          measure:measures(*, category:categories(id, name))
+          measure:measures(*, category:categories(id, name, description))
         `)
         .single();
 
       if (error) throw error;
 
       if (data) {
-        setMeasures(measures.map(m => m.id === id ? data : m));
+        setMeasures(measures.map(m => m.id === id ? data as ObjectMeasure : m));
         toast({
           title: 'Успішно',
           description: 'Статус заходу успішно оновлено'

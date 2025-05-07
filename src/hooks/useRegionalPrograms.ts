@@ -55,7 +55,7 @@ export const useRegionalPrograms = () => {
         .from('program_measures')
         .select(`
           *,
-          measure:measures(*, category:categories(id, name))
+          measure:measures(*, category:categories(id, name, description))
         `)
         .eq('program_id', id)
         .order('year');
@@ -69,7 +69,7 @@ export const useRegionalPrograms = () => {
         const totalByYear: Record<number, number> = {};
         
         years.forEach(year => {
-          measuresByYear[year] = measuresData.filter(m => m.year === year);
+          measuresByYear[year] = measuresData.filter(m => m.year === year) as ProgramMeasure[];
           totalByYear[year] = measuresByYear[year].reduce((acc, m) => acc + m.planned_funding, 0);
         });
 
@@ -288,7 +288,7 @@ export const useRegionalPrograms = () => {
         return [];
       }
 
-      return data;
+      return data as CategoryStatistics[];
     } catch (error) {
       console.error('Error getting categories statistics:', error);
       toast({

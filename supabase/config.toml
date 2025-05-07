@@ -1,1 +1,6 @@
+
+# This file controls the configuration for Supabase Edge Functions.
 project_id = "ogylsucfcymimnlxxtmt"
+
+[functions.category_statistics]
+verify_jwt = false

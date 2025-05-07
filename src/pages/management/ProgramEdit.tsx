@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -30,7 +29,6 @@ import {
 import { 
   ChevronLeft, Plus, Trash2, AlertTriangle, Save
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 import { useMeasures } from '@/hooks/useMeasures';
 import { useRegionalPrograms } from '@/hooks/useRegionalPrograms';
 import { RegionalProgram } from '@/types/managementTypes';

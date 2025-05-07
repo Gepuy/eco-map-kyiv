@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Measure, MeasureResource, MeasureLegalDoc } from '@/types/managementTypes';
+import { Measure, MeasureResource, MeasureLegalDoc, Category } from '@/types/managementTypes';
 import { toast } from '@/components/ui/use-toast';
 
 export const useMeasures = (categoryId?: number) => {
@@ -17,7 +17,7 @@ export const useMeasures = (categoryId?: number) => {
           .from('measures')
           .select(`
             *,
-            category:categories(id, name)
+            category:categories(id, name, description)
           `)
           .order('id');
         
@@ -30,7 +30,7 @@ export const useMeasures = (categoryId?: number) => {
         if (error) throw error;
 
         if (data) {
-          setMeasures(data);
+          setMeasures(data as Measure[]);
         }
       } catch (error) {
         console.error('Error fetching measures:', error);

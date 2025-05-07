@@ -13,7 +13,7 @@ export interface Measure {
   effectiveness: number | null;
   estimated_time: number | null;
   cost: number;
-  category?: Category;
+  category?: Category | null;
   resources?: MeasureResource[];
   legal_documents?: MeasureLegalDoc[];
 }
