@@ -101,7 +101,7 @@ const Measures = () => {
                   <SelectValue placeholder="Фільтр за категорією" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Всі категорії</SelectItem>
+                  <SelectItem value="all-categories">Всі категорії</SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category.id} value={category.id.toString()}>
                       {category.name}

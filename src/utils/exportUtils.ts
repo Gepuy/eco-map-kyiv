@@ -311,7 +311,7 @@ export const exportCostEstimateToWord = async (
             rows: tableRows,
             width: {
               size: 100,
-              type: 'pct', // Fixed type
+              type: 'pct' as 'dxa' | 'auto' | 'nil' | 'pct', // Explicitly cast to correct type
             },
             borders: {
               top: {
@@ -345,7 +345,7 @@ export const exportCostEstimateToWord = async (
             children: [
               new TextRun({
                 text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
-                italics: true, // Fixed property name
+                italics: true, // This is the correct property name
               }),
             ],
             alignment: 'right',
@@ -514,7 +514,10 @@ export const exportRegionalProgramToWord = async (
               new Paragraph(''),
               new Table({
                 rows: tableRows,
-                width: { size: 100, type: 'pct' },
+                width: {
+                  size: 100,
+                  type: 'pct' as 'dxa' | 'auto' | 'nil' | 'pct', // Explicitly cast to correct type
+                },
                 borders: {
                   top: { style: BorderStyle.SINGLE, size: 1 },
                   bottom: { style: BorderStyle.SINGLE, size: 1 },
