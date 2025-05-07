@@ -1,70 +1,55 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  Card, CardContent, CardDescription, 
-  CardHeader, CardTitle, CardFooter 
+import { useRegionalPrograms } from '@/hooks/useRegionalPrograms';
+import {
+  Card, CardContent, CardDescription,
+  CardHeader, CardTitle, CardFooter
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from '@/components/ui/separator';
+import { Badge } from "@/components/ui/badge";
+import {
+  ChevronLeft, Edit, FileText, CalendarDays,
+  DollarSign, BarChart2, PieChart
+} from 'lucide-react';
+import { ProgramReport, ProgramMeasure } from '@/types/managementTypes';
 import { 
   Table, TableBody, TableCaption, TableCell, 
   TableHead, TableHeader, TableRow 
 } from "@/components/ui/table";
 import {
-  BarChart,
-  PieChart,
-  Bar,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from 'recharts';
-import { ChevronLeft, Edit, FileText, FileSpreadsheet } from 'lucide-react';
-import { useRegionalPrograms } from '@/hooks/useRegionalPrograms';
-import { ProgramReport, CategoryStatistics } from '@/types/managementTypes';
-import { exportRegionalProgramToWord, exportToExcel } from '@/utils/exportUtils';
-
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD'];
+  Tabs, TabsContent, TabsList, TabsTrigger
+} from "@/components/ui/tabs";
+import { BarChart } from '@/components/ui/chart';
+import { exportProgramToExcel } from '@/utils/exportUtils';
 
 const ProgramDetails = () => {
   const { id } = useParams<{ id: string }>();
   const programId = parseInt(id || '0', 10);
   const navigate = useNavigate();
   
-  const { getProgramDetails, getCategoriesStatistics } = useRegionalPrograms();
+  const { getProgramDetails } = useRegionalPrograms();
   const [loading, setLoading] = useState(true);
   const [programReport, setProgramReport] = useState<ProgramReport | null>(null);
-  const [stats, setStats] = useState<CategoryStatistics[]>([]);
+  const [hasLoaded, setHasLoaded] = useState(false);
   
   useEffect(() => {
-    const fetchData = async () => {
-      if (programId) {
+    const fetchProgramDetails = async () => {
+      if (programId && !hasLoaded) {
         setLoading(true);
-        
-        const [reportData, statsData] = await Promise.all([
-          getProgramDetails(programId),
-          getCategoriesStatistics()
-        ]);
-        
-        if (reportData) {
-          setProgramReport(reportData);
+        const data = await getProgramDetails(programId);
+        if (data) {
+          setProgramReport(data);
         } else {
-          // Якщо програма не знайдена, повертаємося до списку
+          // Якщо програму не знайдено, повертаємося до списку
           navigate('/management/programs');
         }
-        
-        setStats(statsData);
         setLoading(false);
+        setHasLoaded(true);
       }
     };
     
-    fetchData();
-  }, [programId, getProgramDetails, getCategoriesStatistics, navigate]);
+    fetchProgramDetails();
+  }, [programId, getProgramDetails, navigate, hasLoaded]);
 
   if (loading) {
     return (
@@ -82,6 +67,8 @@ const ProgramDetails = () => {
     );
   }
 
+  const { program, years, totalBudget, measuresCount, measuresByYear, totalByYear, categoriesDistribution } = programReport;
+
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('uk-UA', { 
       style: 'currency', 
@@ -98,239 +85,141 @@ const ProgramDetails = () => {
     });
   };
 
-  // Дані для графіку розподілу за роками
-  const yearData = programReport.years.map(year => ({
-    name: year.toString(),
-    value: programReport.totalByYear[year]
-  }));
-
-  // Дані для графіку розподілу за категоріями
-  const categoryData = programReport.categoriesDistribution.map(cat => ({
-    name: cat.categoryName,
-    value: cat.funding
-  }));
-
-  // Експорт програми
-  const handleExportToWord = () => {
-    exportRegionalProgramToWord(
-      programReport, 
-      `Програма розвитку - ${programReport.program.name}`
-    );
-  };
-  
-  const handleExportToExcel = () => {
-    // Підготовка даних для експорту
-    const exportData = [];
-    
-    // Загальна інформація
-    exportData.push({
-      'Тип': 'Загальна інформація',
-      'Назва програми': programReport.program.name,
-      'Термін дії': `${formatDate(programReport.program.start_date)} - ${formatDate(programReport.program.end_date)}`,
-      'Бюджет': programReport.totalBudget,
-      'Кількість заходів': programReport.measuresCount
-    });
-    
-    // Заходи по рокам
-    programReport.years.forEach(year => {
-      programReport.measuresByYear[year].forEach((measure) => {
-        exportData.push({
-          'Тип': `Захід (${year})`,
-          'Назва заходу': measure.measure?.name || 'Невідомий захід',
-          'Категорія': measure.measure?.category?.name || 'Не вказано',
-          'Фінансування': measure.planned_funding,
-          'Рік': year
-        });
-      });
-    });
-    
-    exportToExcel(exportData, `Програма розвитку - ${programReport.program.name}`);
-  };
-
   return (
     <div className="container mx-auto py-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/management/programs')}
-        >
-          <ChevronLeft className="mr-2 h-4 w-4" /> Назад до програм
-        </Button>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportToWord}>
-            <FileText className="mr-2 h-4 w-4" /> Word
-          </Button>
-          <Button variant="outline" onClick={handleExportToExcel}>
-            <FileSpreadsheet className="mr-2 h-4 w-4" /> Excel
-          </Button>
-          <Button onClick={() => navigate(`/management/programs/${programId}/edit`)}>
-            <Edit className="mr-2 h-4 w-4" /> Редагувати
-          </Button>
-        </div>
-      </div>
+      <Button 
+        variant="outline" 
+        className="mb-6"
+        onClick={() => navigate('/management/programs')}
+      >
+        <ChevronLeft className="mr-2 h-4 w-4" /> Назад до списку
+      </Button>
       
-      <div className="space-y-8">
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col md:flex-row justify-between">
-              <div>
-                <CardTitle className="text-3xl">{programReport.program.name}</CardTitle>
-                <CardDescription className="text-lg mt-1">
-                  {formatDate(programReport.program.start_date)} - {formatDate(programReport.program.end_date)}
-                </CardDescription>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="md:col-span-2">
+          <Card>
+            <CardHeader className="space-y-1">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-2xl">{program.name}</CardTitle>
+                  <CardDescription>
+                    {program.description}
+                  </CardDescription>
+                </div>
+                <Button variant="outline" onClick={() => navigate(`/management/programs/${programId}/edit`)}>
+                  <Edit className="mr-2 h-4 w-4" /> Редагувати
+                </Button>
               </div>
-              <div className="mt-4 md:mt-0">
-                <div className="text-2xl font-bold">{formatCurrency(programReport.totalBudget)}</div>
-                <div className="text-sm text-muted-foreground">Загальний бюджет</div>
-              </div>
-            </div>
-          </CardHeader>
-          
-          <CardContent>
-            {programReport.program.description && (
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Опис програми</h3>
-                <p className="text-gray-700">{programReport.program.description}</p>
-              </div>
-            )}
+            </CardHeader>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card>
-                <CardHeader className="py-4 px-6">
-                  <CardTitle className="text-base">Всього заходів</CardTitle>
-                </CardHeader>
-                <CardContent className="py-2 px-6">
-                  <p className="text-3xl font-bold">{programReport.measuresCount}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="py-4 px-6">
-                  <CardTitle className="text-base">Кількість років</CardTitle>
-                </CardHeader>
-                <CardContent className="py-2 px-6">
-                  <p className="text-3xl font-bold">{programReport.years.length}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="py-4 px-6">
-                  <CardTitle className="text-base">Категорій</CardTitle>
-                </CardHeader>
-                <CardContent className="py-2 px-6">
-                  <p className="text-3xl font-bold">{programReport.categoriesDistribution.length}</p>
-                </CardContent>
-              </Card>
-              
-              <Card>
-                <CardHeader className="py-4 px-6">
-                  <CardTitle className="text-base">Фактичні витрати</CardTitle>
-                </CardHeader>
-                <CardContent className="py-2 px-6">
-                  <p className="text-3xl font-bold">{formatCurrency(
-                    Object.values(programReport.totalByYear).reduce((sum, val) => sum + val, 0)
-                  )}</p>
-                </CardContent>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <Card>
-            <CardHeader>
-              <CardTitle>Розподіл за роками</CardTitle>
-              <CardDescription>
-                Бюджетні витрати по рокам впровадження програми
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={yearData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis tickFormatter={(value) => `₴${value/1000}K`} />
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    <Legend />
-                    <Bar dataKey="value" name="Бюджет" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <CalendarDays className="mr-2 h-5 w-5" />
+                    <h3 className="text-lg font-medium">Період дії</h3>
+                  </div>
+                  <p className="text-xl font-bold">
+                    {formatDate(program.start_date)} - {formatDate(program.end_date)}
+                  </p>
+                </div>
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <DollarSign className="mr-2 h-5 w-5" />
+                    <h3 className="text-lg font-medium">Бюджет</h3>
+                  </div>
+                  <p className="text-2xl font-bold">{formatCurrency(program.budget)}</p>
+                </div>
+                
+                <div className="bg-muted p-4 rounded-lg">
+                  <div className="flex items-center mb-2">
+                    <FileText className="mr-2 h-5 w-5" />
+                    <h3 className="text-lg font-medium">Заходів</h3>
+                  </div>
+                  <p className="text-2xl font-bold">{measuresCount}</p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Розподіл за категоріями</CardTitle>
-              <CardDescription>
-                Фінансування за напрямками діяльності
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={categoryData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {categoryData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-3 flex items-center">
+                  <BarChart2 className="mr-2 h-5 w-5" /> Розподіл бюджету по категоріям
+                </h3>
+                
+                {categoriesDistribution.length > 0 ? (
+                  <BarChart 
+                    data={categoriesDistribution}
+                    index="categoryName"
+                    value="percentage"
+                    formatter={(value: number) => `${value.toFixed(1)}%`}
+                  />
+                ) : (
+                  <p className="text-gray-500 text-center py-4">
+                    Немає даних для відображення розподілу по категоріям
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
         </div>
         
-        {programReport.years.map(year => (
-          <Card key={year}>
+        <div>
+          <Card>
             <CardHeader>
-              <CardTitle>{year} рік</CardTitle>
-              <CardDescription>
-                Заплановані заходи та фінансування на {year} рік: 
-                {formatCurrency(programReport.totalByYear[year])}
-              </CardDescription>
+              <CardTitle>Заходи за роками</CardTitle>
+              <CardDescription>Інформація про заходи, що реалізуються в рамках програми</CardDescription>
             </CardHeader>
+            
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Назва заходу</TableHead>
-                    <TableHead>Категорія</TableHead>
-                    <TableHead>Ефективність</TableHead>
-                    <TableHead className="text-right">Фінансування</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {programReport.measuresByYear[year].map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.measure?.name}</TableCell>
-                      <TableCell>{item.measure?.category?.name}</TableCell>
-                      <TableCell>{item.measure?.effectiveness}%</TableCell>
-                      <TableCell className="text-right">{formatCurrency(item.planned_funding)}</TableCell>
-                    </TableRow>
+              <Tabs defaultValue={years[0].toString()} className="w-full">
+                <TabsList>
+                  {years.map(year => (
+                    <TabsTrigger key={year} value={year.toString()}>
+                      {year}
+                    </TabsTrigger>
                   ))}
-                </TableBody>
-                <TableCaption className="pt-2">
-                  Всього заходів: {programReport.measuresByYear[year].length}
-                </TableCaption>
-              </Table>
+                </TabsList>
+                
+                {years.map(year => (
+                  <TabsContent key={year} value={year.toString()}>
+                    {measuresByYear[year] && measuresByYear[year].length > 0 ? (
+                      <Table>
+                        <TableCaption>Заходи на {year} рік</TableCaption>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Назва</TableHead>
+                            <TableHead className="text-right">Бюджет</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {measuresByYear[year].map((measure: ProgramMeasure) => (
+                            <TableRow key={measure.id}>
+                              <TableCell className="font-medium">{measure.measure?.name}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(measure.planned_funding)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    ) : (
+                      <p className="text-gray-500 text-center py-4">
+                        Немає заходів на {year} рік
+                      </p>
+                    )}
+                    <div className="mt-4 text-right font-bold">
+                      Загальний бюджет на {year} рік: {formatCurrency(totalByYear[year])}
+                    </div>
+                  </TabsContent>
+                ))}
+              </Tabs>
             </CardContent>
+            
+            <CardFooter>
+              <Button onClick={() => exportProgramToExcel(programReport)}>
+                <FileText className="mr-2 h-4 w-4" /> Експортувати в Excel
+              </Button>
+            </CardFooter>
           </Card>
-        ))}
+        </div>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RegionalProgram, ProgramMeasure, ProgramReport, CategoryStatistics } from '@/types/managementTypes';
@@ -7,6 +8,7 @@ export const useRegionalPrograms = () => {
   const [programs, setPrograms] = useState<RegionalProgram[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [programCache, setProgramCache] = useState<Record<number, ProgramReport>>({});
 
   useEffect(() => {
     const fetchPrograms = async () => {
@@ -40,6 +42,11 @@ export const useRegionalPrograms = () => {
 
   const getProgramDetails = async (id: number): Promise<ProgramReport | null> => {
     try {
+      // Check if we have cached data for this program
+      if (programCache[id]) {
+        return programCache[id];
+      }
+
       // Отримуємо дані про програму
       const { data: programData, error: programError } = await supabase
         .from('regional_programs')
@@ -117,6 +124,12 @@ export const useRegionalPrograms = () => {
           totalByYear,
           categoriesDistribution
         };
+
+        // Cache the report
+        setProgramCache(prevCache => ({
+          ...prevCache,
+          [id]: report
+        }));
 
         return report;
       }
@@ -278,8 +291,8 @@ export const useRegionalPrograms = () => {
 
   const getCategoriesStatistics = async (): Promise<CategoryStatistics[]> => {
     try {
-      // Use the correct path for the function call and handle the response type properly
-      const { data, error } = await supabase.functions.invoke('category_statistics');
+      // Call the database RPC function directly instead of using edge function
+      const { data, error } = await supabase.rpc('get_category_statistics');
 
       if (error) throw error;
 
@@ -288,7 +301,7 @@ export const useRegionalPrograms = () => {
       }
 
       // Explicitly cast data to the expected type
-      return (data.data as CategoryStatistics[]) || [];
+      return data as CategoryStatistics[];
     } catch (error) {
       console.error('Error getting categories statistics:', error);
       toast({

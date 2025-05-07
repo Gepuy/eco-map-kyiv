@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -23,10 +22,11 @@ const MeasureDetails = () => {
   const { getMeasureDetails } = useMeasures();
   const [loading, setLoading] = useState(true);
   const [measure, setMeasure] = useState<any>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   
   useEffect(() => {
     const fetchMeasureDetails = async () => {
-      if (measureId) {
+      if (measureId && !hasLoaded) {
         setLoading(true);
         const data = await getMeasureDetails(measureId);
         if (data) {
@@ -36,11 +36,12 @@ const MeasureDetails = () => {
           navigate('/management/measures');
         }
         setLoading(false);
+        setHasLoaded(true);
       }
     };
     
     fetchMeasureDetails();
-  }, [measureId, getMeasureDetails, navigate]);
+  }, [measureId, getMeasureDetails, navigate, hasLoaded]);
 
   if (loading) {
     return (

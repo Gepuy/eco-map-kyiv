@@ -1,6 +1,8 @@
+import ExcelJS from 'exceljs';
 import { saveAs } from 'file-saver';
-import * as ExcelJS from 'exceljs';
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, HeadingLevel } from 'docx';
+import { format } from 'date-fns';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle } from 'docx';
+import { supabase } from '@/integrations/supabase/client';
 import { MeasureCost, ProgramReport } from '@/types/managementTypes';
 
 // Функція для експорту кошторису в Excel
@@ -378,7 +380,7 @@ export const exportToExcel = async (
   worksheet.getCell('A1').value = title;
   worksheet.getCell('A1').alignment = { horizontal: 'center' };
 
-  // Отримуємо заголовки колонок з ��ершого об'єкту
+  // Отримуємо заголовки колонок з 1-го об'єкту
   if (data.length > 0) {
     const headers = Object.keys(data[0]);
     worksheet.getRow(2).values = headers;
@@ -578,7 +580,7 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
   worksheet.getColumn(4).width = 15;
   worksheet.getColumn(5).width = 25;
 
-  // Додаємо заголов��и таблиці
+  // Додаємо заголовки таблиці
   worksheet.getCell('A4').value = '№';
   worksheet.getCell('B4').value = 'Назва заходу';
   worksheet.getCell('C4').value = 'Категорія';
