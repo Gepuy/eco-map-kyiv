@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RegionalProgram, ProgramMeasure, ProgramReport, CategoryStatistics } from '@/types/managementTypes';
@@ -279,8 +278,8 @@ export const useRegionalPrograms = () => {
 
   const getCategoriesStatistics = async (): Promise<CategoryStatistics[]> => {
     try {
-      // Fix type error by properly typing the data response
-      const { data, error } = await supabase.rpc('get_category_statistics');
+      // Use the correct path for the function call and handle the response type properly
+      const { data, error } = await supabase.functions.invoke('category_statistics');
 
       if (error) throw error;
 
@@ -289,7 +288,7 @@ export const useRegionalPrograms = () => {
       }
 
       // Explicitly cast data to the expected type
-      return data as CategoryStatistics[];
+      return (data.data as CategoryStatistics[]) || [];
     } catch (error) {
       console.error('Error getting categories statistics:', error);
       toast({

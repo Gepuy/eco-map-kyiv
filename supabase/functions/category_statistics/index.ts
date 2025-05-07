@@ -19,7 +19,7 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Виконуємо запит для отримання статистики категорій
+    // Call the database function to get category statistics
     const { data, error } = await supabase.rpc('get_category_statistics');
     
     if (error) {

@@ -578,7 +578,7 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
   worksheet.getColumn(4).width = 15;
   worksheet.getColumn(5).width = 25;
 
-  // Додаємо заголовки таблиці
+  // Додаємо заголов��и таблиці
   worksheet.getCell('A4').value = '№';
   worksheet.getCell('B4').value = 'Назва заходу';
   worksheet.getCell('C4').value = 'Категорія';

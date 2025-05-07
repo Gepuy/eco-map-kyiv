@@ -334,7 +334,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_category_statistics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          category_id: number
+          category_name: string
+          measure_count: number
+          total_funding: number
+          percentage: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
