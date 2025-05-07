@@ -300,8 +300,14 @@ export const useRegionalPrograms = () => {
         return [];
       }
 
-      // Explicitly cast data to the expected type
-      return data as CategoryStatistics[];
+      // Map the returned data to the CategoryStatistics type
+      return data.map((item: any) => ({
+        id: item.category_id,
+        name: item.category_name,
+        measures_count: item.measure_count,
+        total_cost: item.total_funding,
+        avg_effectiveness: item.percentage // Using percentage as avg_effectiveness
+      }));
     } catch (error) {
       console.error('Error getting categories statistics:', error);
       toast({

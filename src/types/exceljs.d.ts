@@ -97,6 +97,7 @@ declare module 'exceljs' {
     values: any[];
     height: number;
     hidden: boolean;
+    font: Font; // Added this property
   }
 
   // Add default export

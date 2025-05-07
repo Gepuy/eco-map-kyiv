@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useRegionalPrograms } from '@/hooks/useRegionalPrograms';
@@ -19,7 +20,7 @@ import {
 import {
   Tabs, TabsContent, TabsList, TabsTrigger
 } from "@/components/ui/tabs";
-import { BarChart } from '@/components/ui/chart';
+import { BarChart } from '@/components/ui/bar-chart';
 import { exportProgramToExcel } from '@/utils/exportUtils';
 
 const ProgramDetails = () => {

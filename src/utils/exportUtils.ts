@@ -14,8 +14,32 @@ export const exportCostEstimateToExcel = async (
   const worksheet = workbook.addWorksheet('Кошторис витрат');
 
   // Стилі для заголовків
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(2).font = { bold: true };
+  worksheet.getRow(1).font = { 
+    bold: true, 
+    size: 14, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
+  worksheet.getRow(2).font = { 
+    bold: true, 
+    size: 12, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
 
   // Додаємо заголовок
   worksheet.mergeCells('A1:F1');
@@ -102,10 +126,10 @@ export const exportCostEstimateToExcel = async (
     for (let j = 1; j <= 6; j++) {
       const cell = worksheet.getCell(`${String.fromCharCode(64 + j)}${i}`);
       cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
       };
     }
   }
@@ -372,8 +396,32 @@ export const exportToExcel = async (
   const worksheet = workbook.addWorksheet(title);
 
   // Стилі для заголовків
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(2).font = { bold: true };
+  worksheet.getRow(1).font = { 
+    bold: true, 
+    size: 14, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
+  worksheet.getRow(2).font = { 
+    bold: true, 
+    size: 12, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
 
   // Додаємо заголовок
   worksheet.mergeCells('A1:F1');
@@ -397,10 +445,10 @@ export const exportToExcel = async (
       for (let j = 1; j <= headers.length; j++) {
         const cell = worksheet.getCell(`${String.fromCharCode(64 + j)}${i}`);
         cell.border = {
-          top: { style: 'thin' },
-          left: { style: 'thin' },
-          bottom: { style: 'thin' },
-          right: { style: 'thin' }
+          top: { style: 'thin', color: { argb: 'FF000000' } },
+          left: { style: 'thin', color: { argb: 'FF000000' } },
+          bottom: { style: 'thin', color: { argb: 'FF000000' } },
+          right: { style: 'thin', color: { argb: 'FF000000' } }
         };
       }
     }
@@ -558,9 +606,45 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
   const worksheet = workbook.addWorksheet('Програма розвитку');
 
   // Стилі для заголовків
-  worksheet.getRow(1).font = { bold: true, size: 14 };
-  worksheet.getRow(2).font = { bold: true };
-  worksheet.getRow(3).font = { bold: true };
+  worksheet.getRow(1).font = { 
+    bold: true, 
+    size: 14, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
+  worksheet.getRow(2).font = { 
+    bold: true, 
+    size: 12, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
+  worksheet.getRow(3).font = { 
+    bold: true, 
+    size: 12, 
+    name: 'Arial', 
+    family: 2, 
+    scheme: 'minor', 
+    charset: 1, 
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
 
   // Додаємо заголовок
   worksheet.mergeCells('A1:E1');
@@ -669,10 +753,10 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
     for (let j = 1; j <= 5; j++) {
       const cell = worksheet.getCell(`${String.fromCharCode(64 + j)}${i}`);
       cell.border = {
-        top: { style: 'thin' },
-        left: { style: 'thin' },
-        bottom: { style: 'thin' },
-        right: { style: 'thin' }
+        top: { style: 'thin', color: { argb: 'FF000000' } },
+        left: { style: 'thin', color: { argb: 'FF000000' } },
+        bottom: { style: 'thin', color: { argb: 'FF000000' } },
+        right: { style: 'thin', color: { argb: 'FF000000' } }
       };
     }
   }
