@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -155,7 +156,7 @@ export const CostEstimateForm = () => {
             <CardTitle>Кошторис витрат</CardTitle>
             <CardDescription>
               {selectedFacilityId 
-                ? `Розрахунок витрат для об'єкту "${getSelectedFacilityName()"`
+                ? `Розрахунок витрат для об'єкту "${getSelectedFacilityName()}"`
                 : 'Виберіть об\'єкт для розрахунку витрат'}
             </CardDescription>
           </div>
