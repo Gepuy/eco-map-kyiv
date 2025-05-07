@@ -1,6 +1,5 @@
-
 import { saveAs } from 'file-saver';
-import ExcelJS from 'exceljs';
+import * as ExcelJS from 'exceljs';
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, HeadingLevel } from 'docx';
 import { MeasureCost, ProgramReport } from '@/types/managementTypes';
 
@@ -312,7 +311,7 @@ export const exportCostEstimateToWord = async (
             rows: tableRows,
             width: {
               size: 100,
-              type: 'pct', // Fixed: changed "%" to "pct"
+              type: 'pct', // Fixed type
             },
             borders: {
               top: {
@@ -346,7 +345,7 @@ export const exportCostEstimateToWord = async (
             children: [
               new TextRun({
                 text: `Дата формування: ${new Date().toLocaleDateString('uk-UA')}`,
-                italics: true, // Fixed: changed "italic" to "italics"
+                italics: true, // Fixed property name
               }),
             ],
             alignment: 'right',
@@ -362,7 +361,6 @@ export const exportCostEstimateToWord = async (
   saveAs(blob, `${title} ${new Date().toLocaleDateString('uk-UA')}.docx`);
 };
 
-// Added missing export functions
 // Функція для експорту до Excel (загальна)
 export const exportToExcel = async (
   data: Record<string, any>[], 
@@ -630,7 +628,7 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
   
   rowIndex += 2;
 
-  // Додаємо розподіл по категоріях
+  // Додаємо розподіл по категоріям
   worksheet.getCell(`A${rowIndex}`).value = 'Розподіл за категоріями';
   worksheet.getCell(`A${rowIndex}`).font = { bold: true, size: 12 };
   rowIndex++;

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
@@ -22,7 +23,6 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  TooltipProps
 } from 'recharts';
 import { ChevronLeft, Edit, FileText, FileSpreadsheet } from 'lucide-react';
 import { useRegionalPrograms } from '@/hooks/useRegionalPrograms';
