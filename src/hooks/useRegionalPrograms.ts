@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RegionalProgram, ProgramMeasure, ProgramReport, CategoryStatistics } from '@/types/managementTypes';
@@ -278,7 +279,7 @@ export const useRegionalPrograms = () => {
 
   const getCategoriesStatistics = async (): Promise<CategoryStatistics[]> => {
     try {
-      // Використовуємо SQL запит через суперджсон-оператор для агрегації даних
+      // Fix type error by properly typing the data response
       const { data, error } = await supabase.rpc('get_category_statistics');
 
       if (error) throw error;
@@ -287,6 +288,7 @@ export const useRegionalPrograms = () => {
         return [];
       }
 
+      // Explicitly cast data to the expected type
       return data as CategoryStatistics[];
     } catch (error) {
       console.error('Error getting categories statistics:', error);

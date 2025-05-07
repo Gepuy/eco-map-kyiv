@@ -378,7 +378,7 @@ export const exportToExcel = async (
   worksheet.getCell('A1').value = title;
   worksheet.getCell('A1').alignment = { horizontal: 'center' };
 
-  // Отримуємо заголовки колонок з першого об'єкту
+  // Отримуємо заголовки колонок з ��ершого об'єкту
   if (data.length > 0) {
     const headers = Object.keys(data[0]);
     worksheet.getRow(2).values = headers;

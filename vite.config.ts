@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  // Add optimizeDeps to ensure proper bundling of problematic dependencies
+  // Configure optimizeDeps to ensure proper handling of problematic dependencies
   optimizeDeps: {
     include: ['exceljs', 'file-saver', 'docx']
   },
@@ -29,5 +29,13 @@ export default defineConfig(({ mode }) => ({
     commonjsOptions: {
       include: [/node_modules/],
     },
+    rollupOptions: {
+      external: ['exceljs'],
+      output: {
+        globals: {
+          exceljs: 'ExcelJS'
+        }
+      }
+    }
   }
 }));
