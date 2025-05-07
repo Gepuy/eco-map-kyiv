@@ -21,9 +21,10 @@ interface BarChartProps {
   index: string;
   value: string;
   formatter?: (value: number) => string;
+  colors?: string[];
 }
 
-export function BarChart({ data, index, value, formatter }: BarChartProps) {
+export function BarChart({ data, index, value, formatter, colors = ['#8884d8'] }: BarChartProps) {
   return (
     <ChartContainer config={{}} className="aspect-[4/3]">
       <RechartsBarChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 20 }}>
@@ -54,7 +55,7 @@ export function BarChart({ data, index, value, formatter }: BarChartProps) {
             return null;
           }}
         />
-        <Bar dataKey={value} fill="#8884d8" radius={[4, 4, 0, 0]} />
+        <Bar dataKey={value} fill={colors[0]} radius={[4, 4, 0, 0]} />
       </RechartsBarChart>
     </ChartContainer>
   );

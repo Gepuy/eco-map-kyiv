@@ -15,10 +15,11 @@ const MeasureEdit = () => {
   const { getMeasureDetails, updateMeasure } = useMeasures();
   const [loading, setLoading] = useState(true);
   const [measure, setMeasure] = useState<any>(null);
+  const [hasLoaded, setHasLoaded] = useState(false);
   
   useEffect(() => {
     const fetchMeasureDetails = async () => {
-      if (measureId) {
+      if (measureId && !hasLoaded) {
         setLoading(true);
         const data = await getMeasureDetails(measureId);
         if (data) {
@@ -28,11 +29,12 @@ const MeasureEdit = () => {
           navigate('/management/measures');
         }
         setLoading(false);
+        setHasLoaded(true);
       }
     };
     
     fetchMeasureDetails();
-  }, [measureId, getMeasureDetails, navigate]);
+  }, [measureId, getMeasureDetails, navigate, hasLoaded]);
 
   const handleSubmit = async (
     measureData: Omit<Measure, 'id'>, 

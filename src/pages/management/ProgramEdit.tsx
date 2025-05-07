@@ -49,6 +49,7 @@ const ProgramEdit = () => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [budget, setBudget] = useState('');
+  const [hasLoaded, setHasLoaded] = useState(false);
   
   // Заходи програми
   const [programMeasures, setProgramMeasures] = useState<any[]>([]);
@@ -68,7 +69,7 @@ const ProgramEdit = () => {
   // Завантажуємо дані програми
   useEffect(() => {
     const fetchProgram = async () => {
-      if (programId) {
+      if (programId && !hasLoaded) {
         setLoading(true);
         const data = await getProgramDetails(programId);
         if (data) {
@@ -110,11 +111,12 @@ const ProgramEdit = () => {
           navigate('/management/programs');
         }
         setLoading(false);
+        setHasLoaded(true);
       }
     };
     
     fetchProgram();
-  }, [programId, getProgramDetails, navigate]);
+  }, [programId, getProgramDetails, navigate, hasLoaded]);
   
   // Оновлюємо роки при зміні дат
   useEffect(() => {

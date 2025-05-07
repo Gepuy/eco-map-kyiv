@@ -19,7 +19,7 @@ export const exportCostEstimateToExcel = async (
     size: 14, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -32,7 +32,7 @@ export const exportCostEstimateToExcel = async (
     size: 12, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -98,7 +98,19 @@ export const exportCostEstimateToExcel = async (
       '', '', '', '', 'Разом за заходом:', measure.totalCost
     ];
     
-    worksheet.getRow(rowIndex).font = { bold: true };
+    worksheet.getRow(rowIndex).font = { 
+      bold: true,
+      size: 12,
+      name: 'Arial',
+      family: 2,
+      scheme: 'minor' as any,
+      charset: 1,
+      color: { argb: 'FF000000' },
+      italic: false,
+      underline: false,
+      strike: false,
+      outline: false
+    };
     worksheet.getCell(`F${rowIndex}`).numFmt = '# ##0.00 ₴';
     
     rowIndex++;
@@ -110,7 +122,19 @@ export const exportCostEstimateToExcel = async (
   worksheet.getRow(rowIndex).values = [
     '', '', '', '', 'ЗАГАЛЬНА ВАРТІСТЬ:', totalCost
   ];
-  worksheet.getRow(rowIndex).font = { bold: true };
+  worksheet.getRow(rowIndex).font = { 
+    bold: true,
+    size: 12,
+    name: 'Arial',
+    family: 2,
+    scheme: 'minor' as any,
+    charset: 1,
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
   worksheet.getRow(rowIndex).height = 20;
   worksheet.getCell(`F${rowIndex}`).numFmt = '# ##0.00 ₴';
 
@@ -401,7 +425,7 @@ export const exportToExcel = async (
     size: 14, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -414,7 +438,7 @@ export const exportToExcel = async (
     size: 12, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -611,7 +635,7 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
     size: 14, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -624,7 +648,7 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
     size: 12, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -637,7 +661,7 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
     size: 12, 
     name: 'Arial', 
     family: 2, 
-    scheme: 'minor', 
+    scheme: 'minor' as any, 
     charset: 1, 
     color: { argb: 'FF000000' },
     italic: false,
@@ -699,7 +723,19 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
       '', 'Всього за ' + year + ' рік:', '', '', programReport.totalByYear[year]
     ];
     
-    worksheet.getRow(rowIndex).font = { bold: true };
+    worksheet.getRow(rowIndex).font = { 
+      bold: true,
+      size: 12,
+      name: 'Arial',
+      family: 2,
+      scheme: 'minor' as any,
+      charset: 1,
+      color: { argb: 'FF000000' },
+      italic: false,
+      underline: false,
+      strike: false,
+      outline: false
+    };
     worksheet.getCell(`E${rowIndex}`).numFmt = '# ##0.00 ₴';
     
     rowIndex += 2; // Додаємо пустий рядок
@@ -712,21 +748,57 @@ export const exportProgramToExcel = async (programReport: ProgramReport) => {
     '', 'ЗАГАЛЬНЕ ФІНАНСУВАННЯ:', '', '', totalFunding
   ];
   
-  worksheet.getRow(rowIndex).font = { bold: true };
+  worksheet.getRow(rowIndex).font = { 
+    bold: true,
+    size: 12,
+    name: 'Arial',
+    family: 2,
+    scheme: 'minor' as any,
+    charset: 1,
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
   worksheet.getCell(`E${rowIndex}`).numFmt = '# ##0.00 ₴';
   
   rowIndex += 2;
 
   // Додаємо розподіл по категоріям
   worksheet.getCell(`A${rowIndex}`).value = 'Розподіл за категоріями';
-  worksheet.getCell(`A${rowIndex}`).font = { bold: true, size: 12 };
+  worksheet.getCell(`A${rowIndex}`).font = { 
+    bold: true, 
+    size: 12,
+    name: 'Arial',
+    family: 2,
+    scheme: 'minor' as any,
+    charset: 1,
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
   rowIndex++;
 
   worksheet.getRow(rowIndex).values = [
     '№', 'Категорія', 'Кількість заходів', 'Фінансування, грн', 'Відсоток від бюджету'
   ];
   
-  worksheet.getRow(rowIndex).font = { bold: true };
+  worksheet.getRow(rowIndex).font = { 
+    bold: true,
+    size: 12,
+    name: 'Arial',
+    family: 2,
+    scheme: 'minor' as any,
+    charset: 1,
+    color: { argb: 'FF000000' },
+    italic: false,
+    underline: false,
+    strike: false,
+    outline: false
+  };
   
   rowIndex++;
 
